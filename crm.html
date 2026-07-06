@@ -255,6 +255,7 @@
       </select>
     </div>
     <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="status-notes"></textarea></div>
+    <div class="form-group"><label class="form-label">Personal Line (inserted after greeting in Email 1)</label><input class="form-input" id="status-personal-line" placeholder="e.g. Saw your 5-star streak on Google — impressive"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('status-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveStatus()">Save</button>
@@ -699,6 +700,7 @@ function openStatusModal(id){
   document.getElementById('status-modal-title').textContent=`Update: ${c.name}`;
   document.getElementById('status-outcome').value=c.outcome||'';
   document.getElementById('status-notes').value=c.notes||'';
+  document.getElementById('status-personal-line').value=c.personal_line||'';
   const statuses=['uncontacted','email1','email2','email3','called','interested','notinterested','signedup','bounced','toobig'];
   document.getElementById('status-grid').innerHTML=statuses.map(s=>{
     const sc=STATUS_CONFIG[s];
@@ -718,7 +720,8 @@ async function saveStatus(){
   const newStatus=statuses[idx]||c.status;
   const outcome=document.getElementById('status-outcome').value;
   const notes=document.getElementById('status-notes').value;
-  const ok=await dbUpdate(editingId,{status:newStatus,outcome,notes});
+  const personal_line=document.getElementById('status-personal-line').value.trim();
+  const ok=await dbUpdate(editingId,{status:newStatus,outcome,notes,personal_line});
   if(ok){closeModal('status-modal');updateCounts();renderTable();showToast('Saved!','success');}
 }
 
