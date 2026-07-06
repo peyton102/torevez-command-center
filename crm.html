@@ -787,7 +787,7 @@ async function importCSV(){
       const rawNotes=row['notes']||'';
       const pipeIdx=rawNotes.indexOf(' | ');
       const notes=pipeIdx!==-1?rawNotes.substring(0,pipeIdx):rawNotes;
-      const personal_line=pipeIdx!==-1?rawNotes.substring(pipeIdx+3):'';
+      const personal_line=(row['personal line']||row['personal_line']||row['personalline']||row['personal']||(pipeIdx!==-1?rawNotes.substring(pipeIdx+3):'')).trim();
       toInsert.push({name,phone,email,reviews:parseInt(row['reviews']||row['review count']||0)||0,status:'uncontacted',outcome:'',notes,personal_line});
       added++;
     }
