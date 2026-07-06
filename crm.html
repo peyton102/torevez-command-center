@@ -786,9 +786,10 @@ async function importCSV(){
       if(dup){skipped++;continue;}
       const rawNotes=row['notes']||'';
       const pipeIdx=rawNotes.indexOf(' | ');
-      const notes=pipeIdx!==-1?rawNotes.substring(0,pipeIdx):rawNotes;
-      const personal_line=(row['personal line']||row['personal_line']||row['personalline']||row['personal']||(pipeIdx!==-1?rawNotes.substring(pipeIdx+3):'')).trim();
-      toInsert.push({name,phone,email,reviews:parseInt(row['reviews']||row['review count']||0)||0,status:'uncontacted',outcome:'',notes,personal_line});
+      const rawPL=(row['personal line']||row['personal_line']||row['personalline']||row['personal']||(pipeIdx!==-1?rawNotes.substring(pipeIdx+3):'')).trim();
+      // Discard fallback/error messages (start with "(" or contain AI-generated explanations)
+      const personal_line=(rawPL.startsWith('(')||/no genuine|not hvac|does not exist|no specific|no detail/i.test(rawPL))?'':rawPL;
+      toInsert.push({name,phone,email,reviews:parseInt(row['reviews']||row['review count']||0)||0,status:'uncontacted',outcome:'',notes:'',personal_line});
       added++;
     }
     if(toInsert.length>0){
