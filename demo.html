@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torevez Demo Walkthrough v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+    background: #0a0a0a; 
+    color: #e0e0e0; 
+    line-height: 1.6;
+  }
+  header { 
+    background: #1a1a1a; 
+    border-bottom: 1px solid #2a2a2a; 
+    padding: 14px 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+  }
+  header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.05em; color: #fff; }
+  header span { font-size: 12px; color: #666; }
+
+  .topnav {
+    background: #131313;
+    border-bottom: 1px solid #222;
+    padding: 12px 20px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: #666;
+    border: 1px solid transparent;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { background: #1e1e1e; color: #ccc; border-color: #2a2a2a; }
+  .nav-btn.active { background: #1e1e1e; color: #fff; border-color: #333; }
+  .nav-btn.active.green { border-color: #3a6a3a; color: #7dcc7d; background: #1a2a1a; }
+  .nav-btn.active.blue { border-color: #2a5a7a; color: #7aabcc; background: #0a1a2a; }
+  .nav-btn.active.purple { border-color: #5a3a6a; color: #c084fc; background: #1a0a2a; }
+  .nav-btn.active.gold { border-color: #6a5a10; color: #ddcc6d; background: #1f1a08; }
+  .nav-btn.active.red { border-color: #6a3a3a; color: #ff8888; background: #2a0a0a; }
+
+  .main { padding: 32px 24px; max-width: 1000px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  h2 { 
+    font-size: 24px; 
+    font-weight: 700; 
+    color: #fff; 
+    margin-bottom: 6px; 
+    letter-spacing: -0.01em;
+  }
+  .subtitle { 
+    font-size: 13px; 
+    color: #666; 
+    margin-bottom: 28px; 
+  }
+
+  h3 { 
+    font-size: 15px; 
+    font-weight: 600; 
+    color: #7dd3fc; 
+    margin-top: 24px; 
+    margin-bottom: 10px; 
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .you { 
+    background: #1e3a2a; 
+    border-left: 4px solid #22c55e; 
+    padding: 14px 18px; 
+    margin: 10px 0; 
+    border-radius: 6px;
+    font-size: 15px;
+    color: #a5d6a7;
+  }
+  .you strong { color: #c8f7c8; }
+
+  .action { 
+    background: #2a2a1e; 
+    border-left: 4px solid #eab308; 
+    padding: 14px 18px; 
+    margin: 10px 0; 
+    border-radius: 6px;
+    font-size: 13px;
+    color: #fde047;
+    font-style: italic;
+  }
+
+  .explain {
+    background: #1a1a2a;
+    border-left: 4px solid #6366f1;
+    padding: 14px 18px;
+    margin: 10px 0;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #c7d2fe;
+  }
+  .explain strong { color: #e0e7ff; }
+
+  .code { 
+    background: #2a1e1e; 
+    border: 1px solid #3a2a2a; 
+    padding: 10px 14px; 
+    margin: 10px 0; 
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    color: #fca5a5;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  .timing {
+    display: inline-block;
+    background: #333;
+    color: #aaa;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 12px;
+    vertical-align: middle;
+  }
+
+  .pivot-card {
+    background: #1a2a1a;
+    border: 1px solid #2a4a2a;
+    padding: 14px 18px;
+    margin: 10px 0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #b8e6b8;
+  }
+  .pivot-card strong { color: #7dcc7d; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .three-q {
+    background: #2a1a2a;
+    border-left: 4px solid #a855f7;
+    padding: 14px 18px;
+    margin: 12px 0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #d8b4fe;
+  }
+  .three-q strong { color: #e9d5ff; }
+  .three-q ol { margin-left: 20px; margin-top: 8px; }
+  .three-q li { margin-bottom: 6px; }
+
+  .objection-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    padding: 16px 20px;
+    margin: 12px 0;
+    border-radius: 8px;
+  }
+  .obj-label {
+    display: inline-block;
+    background: #3a1a1a;
+    color: #ff8888;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .checklist {
+    background: #1a2535;
+    border: 1px solid #2a4a6a;
+    padding: 16px 20px;
+    margin: 12px 0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #a0c4e8;
+  }
+  .checklist ul { list-style: none; }
+  .checklist li { padding: 4px 0; }
+  .checklist li::before { content: "☐ "; color: #7aabcc; font-weight: bold; margin-right: 6px; }
+  .checklist strong { color: #cce0f0; }
+
+  .stop {
+    background: #2a0a0a;
+    border: 2px solid #cc4444;
+    color: #ff8888;
+    padding: 10px 14px;
+    margin: 8px 0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TOREVEZ DEMO WALKTHROUGH <span style="color:#555; font-weight:400;">v2</span></h1>
+  <span>15-20 min · Discovery-led · Two demos Wednesday</span>
+</header>
+
+<nav class="topnav">
+  <button class="nav-btn active" onclick="show('prep', this)">🔍 Prep</button>
+  <button class="nav-btn green" onclick="show('open', this)">👋 Open</button>
+  <button class="nav-btn green" onclick="show('discovery', this)">🎯 Discovery</button>
+  <button class="nav-btn blue" onclick="show('pivot', this)">🧭 Pivot Map</button>
+  <button class="nav-btn green" onclick="show('agenda', this)">📋 Agenda</button>
+  <button class="nav-btn purple" onclick="show('feature1', this)">📞 AI Receptionist</button>
+  <button class="nav-btn purple" onclick="show('feature2', this)">📅 Booking</button>
+  <button class="nav-btn purple" onclick="show('feature3', this)">⭐ Reviews</button>
+  <button class="nav-btn purple" onclick="show('finance', this)">💰 Finance</button>
+  <button class="nav-btn gold" onclick="show('setup', this)">⚙️ Live Setup</button>
+  <button class="nav-btn gold" onclick="show('close', this)">✅ Close</button>
+  <button class="nav-btn red" onclick="show('objections', this)">❌ Objections</button>
+</nav>
+
+<div class="main">
+
+<!-- PREP -->
+<div id="prep" class="page active">
+  <h2>Prep Before The Call <span class="timing">5 min before</span></h2>
+  <p class="subtitle">Tick everything off before you dial. Don't skip this.</p>
+
+  <h3>⚡ Pre-Call Checklist</h3>
+  <div style="background:#1a1a1a; border:2px solid #333; border-radius:10px; padding:20px; margin-bottom:20px;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Tenant pre-created in the portal
+      </label>
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Twilio number ready to assign
+      </label>
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Forwarding code written down: <span style="font-family:monospace; color:#fca5a5; margin-left:4px;">*61*18885285584#</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Calendar pulled up for follow-up booking
+      </label>
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Your phone unblocked and ready to call them
+      </label>
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Looked up their Google Maps listing (review count, recent reviews, website)
+      </label>
+      <label style="display:flex; align-items:center; gap:12px; cursor:pointer; font-size:15px; color:#ccc;">
+        <input type="checkbox" onchange="this.parentElement.style.color=this.checked?'#22c55e':'#ccc'" style="width:18px;height:18px;cursor:pointer;accent-color:#22c55e;">
+        Portal open in another tab, logged in, ready to screenshare
+      </label>
+    </div>
+  </div>
+
+  <h3>Google Maps Research</h3>
+  <div class="checklist">
+    <strong>Look up their business on Google Maps and note:</strong>
+    <ul>
+      <li>How many Google reviews do they have? (Reference: most competitors have 40+, point this out if they're under)</li>
+      <li>How recent is their most recent review? (Old reviews = reputation gap)</li>
+      <li>Do they have a website? Does it have online booking?</li>
+      <li>What city / service area? (You're local — reference Florida heat season)</li>
+      <li>Solo owner-operated or small team?</li>
+    </ul>
+  </div>
+
+  <h3>Tomorrow's Prospects — Specific Openers</h3>
+
+  <div style="background:#1a2a1a; border:2px solid #3a6a3a; border-radius:10px; padding:20px; margin-bottom:12px;">
+    <div style="font-size:13px; font-weight:700; color:#7dcc7d; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Enrique — Premier Frost</div>
+    <div style="font-size:13px; color:#666; margin-bottom:12px;">13 reviews · Family owned · Request-only booking · 689-326-7373 · Lead with BOOKING AUTOMATION</div>
+    <div class="you" style="margin:0;">
+      "Hey Enrique — I pulled up Premier Frost before the call. I noticed your booking page is request-based — is that creating any scheduling headaches for you, like a lot of back and forth to confirm appointments?"
+    </div>
+  </div>
+
+  <div style="background:#1a2a1a; border:2px solid #3a6a3a; border-radius:10px; padding:20px; margin-bottom:12px;">
+    <div style="font-size:13px; font-weight:700; color:#7dcc7d; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Vicente Industries</div>
+    <div style="font-size:13px; color:#666; margin-bottom:12px;">64 reviews · Active reviews (1 day ago, week before) · Markets 24/7 support · Basic website · "Message Us" form for booking · Lead with AI RECEPTIONIST</div>
+    <div class="you" style="margin:0;">
+      "Hey [name] — I pulled up Vicente Industries before the call. I noticed you market 24/7 support — that's a big promise to keep. When a call comes in and you can't pick up immediately, what happens to that lead right now?"
+    </div>
+  </div>
+
+  <div style="background:#1a2a1a; border:2px solid #3a6a3a; border-radius:10px; padding:20px; margin-bottom:20px;">
+    <div style="font-size:13px; font-weight:700; color:#7dcc7d; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Archer Air</div>
+    <div style="font-size:13px; color:#666; margin-bottom:12px;">16 reviews · 352 area code (Gainesville/Ocala) · Gmail business email · No real website · Interested since April 17 · Lead with AI RECEPTIONIST</div>
+    <div class="you" style="margin:0;">
+      "Hey [name] — thanks for hopping on. I pulled up Archer Air before the call and noticed you've got 16 reviews. Most competitors in your area have 40 plus. Before I show you anything, what would you say is the biggest challenge in your business right now when it comes to leads and customers?"
+    </div>
+  </div>
+
+  <div class="explain">
+    <strong>Why this works:</strong> You're not winging the first 30 seconds. Specific references in the first 60 seconds change the whole tone — they know immediately you're not just another guy running a generic pitch.
+  </div>
+</div>
+
+<!-- OPEN -->
+<div id="open" class="page">
+  <h2>Opening <span class="timing">30 sec</span></h2>
+  <p class="subtitle">Set the tone. You're not winging it — you came prepared.</p>
+
+  <div class="you">
+    "Hey [name], appreciate you taking the time today. Quick thing before we dive in — I pulled up your business before the call and wanted to make sure I'm focused on what actually matters to you."
+  </div>
+
+  <div class="explain">
+    <strong>Then go straight into your specific opener for that prospect (see Prep tab).</strong> Don't use the generic discovery question if you already have a specific angle — lead with what you found. Premier Frost → booking headaches. AC Direct → 2 reviews and no booking page.
+  </div>
+</div>
+
+<!-- DISCOVERY -->
+<div id="discovery" class="page">
+  <h2>Discovery Question <span class="timing">2 min</span></h2>
+  <p class="subtitle">Their answer becomes your roadmap for the entire demo.</p>
+
+  <div class="you">
+    "What would you say is the biggest challenge in your business right now when it comes to leads and customers?"
+  </div>
+
+  <div class="stop">STOP TALKING. LET THEM ANSWER FULLY.</div>
+
+  <div class="explain">
+    <strong>Why this works:</strong> They feel heard from minute one. They tell you in their own words what's costing them money. Their exact words become your language for the rest of the demo. "You mentioned leads falling through — let me show you exactly how we handle that."
+  </div>
+
+  <h3>If They Give A Vague Answer</h3>
+  <div class="you">
+    "Tell me more about that — what does that look like day to day?"
+  </div>
+  <div class="you">
+    "When was the last time that actually cost you a job?"
+  </div>
+
+  <div class="explain">
+    <strong>These two lines are gold.</strong> One-word answers like "leads" or "busy" need stretching before you demo. Get them talking about the specific pain in detail — the more specific they get, the stronger your pivot into the feature that solves it.
+  </div>
+
+  <div class="action">
+    Write down their exact words. Use them throughout the demo. Then jump to the Pivot Map tab to figure out which feature to lead with.
+  </div>
+</div>
+
+<!-- PIVOT MAP -->
+<div id="pivot" class="page">
+  <h2>Pivot Map <span class="timing">based on their answer</span></h2>
+  <p class="subtitle">Match what they said to the feature you lead with.</p>
+
+  <div class="pivot-card">
+    <strong>They said: missed calls / lost leads / phone tag</strong><br>
+    → Lead with <strong>AI Receptionist + Missed Call Text-Back</strong><br>
+    Your hook: "That's exactly the first thing I'm going to show you."
+  </div>
+
+  <div class="pivot-card">
+    <strong>They said: cash flow / rising costs / margins / R-410A / equipment costs</strong><br>
+    → Lead with <strong>Finance Tracker</strong><br>
+    Your hook: "Tight margins make knowing exactly what you make per job critical — let me show you what we built for that."
+  </div>
+
+  <div class="pivot-card">
+    <strong>They said: no-shows / appointment chaos / scheduling / wasted truck rolls</strong><br>
+    → Lead with <strong>Booking Automation + Smart Reminders</strong><br>
+    Your hook: "Every wasted truck roll is money out of your pocket — let me show you how we fix that."
+  </div>
+
+  <div class="pivot-card">
+    <strong>They said: reviews / reputation / competition / Google ranking</strong><br>
+    → Lead with <strong>Review Automation</strong><br>
+    Your hook: "Reviews are how you win jobs over competitors right now — let me show you how we triple yours."
+  </div>
+
+  <div class="pivot-card">
+    <strong>They said: refrigerant transition / supply chain / labor shortage</strong><br>
+    → Acknowledge briefly, redirect to a Torevez feature.<br>
+    Your line: "Yeah those are real industry-wide issues — what we focus on at Torevez is the lead and revenue side of things, which is what I want to show you today."
+  </div>
+
+  <div class="explain">
+    <strong>After leading feature → show the others in any order.</strong> The order doesn't matter once you've hit their main pain point first. Just walk through all 4 features.
+  </div>
+</div>
+
+<!-- AGENDA -->
+<div id="agenda" class="page">
+  <h2>Agenda Set <span class="timing">30 sec</span></h2>
+  <p class="subtitle">Make the next 15 minutes feel structured and easy.</p>
+
+  <div class="you">
+    "Perfect. So what I'm going to show you today is exactly how Torevez handles that. I'll walk you through it, keep it tight, probably 15 minutes. And at the end I'm going to get you fully set up live on this call so you're running before we hang up. Sound good?"
+  </div>
+
+  <div class="action">Wait for yes.</div>
+
+  <div class="you">
+    "So Torevez is built specifically for HVAC contractors. No bloated features you'll never use. Just the stuff that catches leads, fills your calendar, and gets you more Google reviews automatically. Let me show you how it works."
+  </div>
+</div>
+
+<!-- FEATURE 1 - AI RECEPTIONIST -->
+<div id="feature1" class="page">
+  <h2>📞 AI Receptionist + Missed Call Text-Back <span class="timing">4 min</span></h2>
+
+  <h3>How To Explain It</h3>
+  <div class="explain">
+    <strong>The core idea:</strong> When a call goes unanswered, instead of going to voicemail (which most customers ignore), an AI receptionist picks up, has a real conversation, captures the lead, and texts the owner the full info instantly. Owner calls back already knowing who it is and what they want.
+  </div>
+
+  <h3>Your Pitch</h3>
+  <div class="you">
+    "So right now, every time you miss a call while you're under someone's unit, that lead is probably calling the next guy on Google. What Torevez does is the second a call goes missed, an AI receptionist jumps on, engages them, captures the lead, and fires it straight into your dashboard with their info. I'll show you live right now — call this number and just let it ring through."
+  </div>
+
+  <h3>Live Demo</h3>
+  <div class="action">
+    Give them your forwarding-enabled number to call. Let it ring through. Vapi picks up, you let it run a normal flow with you playing customer if needed, or have them play the customer.
+  </div>
+
+  <div class="action">
+    When call ends, show them: (1) the office SMS that hit your phone with full lead details, (2) the lead in the dashboard's Leads tab, (3) the lead also in the Calls tab.
+  </div>
+
+  <h3>3 Closing Questions</h3>
+  <div class="three-q">
+    <strong>Ask each. Pause after every one. Stay silent.</strong>
+    <ol>
+      <li>"Does that solve the problem you described?"</li>
+      <li>"What would the impact be if that was running every time you missed a call?"</li>
+      <li>"Is that something you can see working for your business?"</li>
+    </ol>
+  </div>
+
+  <div class="stop">SILENCE IS YOUR FRIEND. DON'T FILL IT.</div>
+</div>
+
+<!-- FEATURE 2 - BOOKING -->
+<div id="feature2" class="page">
+  <h2>📅 Booking Automation + Smart Reminders <span class="timing">3 min</span></h2>
+
+  <h3>How To Explain It</h3>
+  <div class="explain">
+    <strong>The core idea:</strong> Once a lead's in, they can book directly from a custom page — no phone tag. Automatic confirmation goes out. 24 hours before, they get a reminder. 2 hours before, another reminder. Cuts no-shows by roughly 60%.<br><br>
+    <strong>Why it matters:</strong> Every no-show = wasted truck roll = real money. Labor shortages make every hour of a tech's day expensive.
+  </div>
+
+  <h3>Your Pitch</h3>
+  <div class="you">
+    "Once that lead comes in, instead of phone tag, they can book directly from a custom booking page built for your business. Automatic confirmations go out immediately. Then 24 hours before the appointment and 2 hours before, they get a reminder text. That alone cuts no-shows by about 60%. Every wasted truck roll to a no-show is money out of your pocket."
+  </div>
+
+  <h3>Live Demo</h3>
+  <div class="action">
+    Pull up the Bookings tab. Add a quick booking with their info — show the confirmation text hit their phone in real time. Click Complete on it to show the review request flow that's about to fire.
+  </div>
+
+  <h3>3 Closing Questions</h3>
+  <div class="three-q">
+    <strong>Ask each. Pause. Silence.</strong>
+    <ol>
+      <li>"Does that solve the no-show problem?"</li>
+      <li>"What would 60% fewer no-shows mean to your week?"</li>
+      <li>"Is that something you can see using?"</li>
+    </ol>
+  </div>
+</div>
+
+<!-- FEATURE 3 - REVIEWS -->
+<div id="feature3" class="page">
+  <h2>⭐ Review Automation <span class="timing">3 min</span></h2>
+
+  <h3>How To Explain It</h3>
+  <div class="explain">
+    <strong>The core idea:</strong> After every completed job, Torevez automatically texts the customer with a one-tap link to leave a Google review. Most contractors are sitting on 10-15 reviews. Guys using this are tripling that within months.<br><br>
+    <strong>Why it matters:</strong> Reviews are how customers pick contractors now. Same service quality, more reviews = more jobs.
+  </div>
+
+  <h3>Your Pitch</h3>
+  <div class="you">
+    "Last thing. After you complete a job, Torevez automatically sends a text to the customer with a one-tap link to leave you a Google review. Most contractors are sitting on 10 or 15 reviews. Guys using this are tripling that within the first few months. And in your market right now, reviews are how you win jobs over competitors even if your service is identical."
+  </div>
+
+  <div class="explain">
+    <strong>If you noted their review count in prep:</strong> "I noticed you have [X] reviews — most of your competitors have [Y]+. Getting that number up would directly affect how often you show up in searches."
+  </div>
+
+  <h3>Live Demo</h3>
+  <div class="action">
+    Reference the booking you marked complete in the previous feature — explain that in 2 hours, the customer will get a review request text automatically. No manual work.
+  </div>
+
+  <h3>3 Closing Questions</h3>
+  <div class="three-q">
+    <strong>Ask each. Pause. Silence.</strong>
+    <ol>
+      <li>"Does getting more reviews matter for your business right now?"</li>
+      <li>"What would tripling your review count do for your Google ranking?"</li>
+      <li>"Is that something you'd actually use?"</li>
+    </ol>
+  </div>
+</div>
+
+<!-- FINANCE -->
+<div id="finance" class="page">
+  <h2>💰 Finance Tracker <span class="timing">3 min</span></h2>
+
+  <h3>How To Explain It</h3>
+  <div class="explain">
+    <strong>The core idea:</strong> A quick P&L tracker for every job. Add revenue when you finish, add costs for parts and labor, see your profit and margin in real time. Export to CSV monthly for your books.<br><br>
+    <strong>Why it matters right now:</strong> Equipment costs are running $9-16K per unit because of the R-410A transition. Margins are getting squeezed. Knowing exactly what each job actually makes is critical.
+  </div>
+
+  <h3>Your Pitch</h3>
+  <div class="you">
+    "With equipment costs going up and the refrigerant transition squeezing margins, knowing exactly what every job actually makes you matters more than ever. Torevez has a built-in finance tracker — you log the revenue, you log the parts and labor, and it tells you your real profit and margin on every single job. No spreadsheets, no guessing. Let me show you."
+  </div>
+
+  <h3>Live Demo</h3>
+  <div class="action">
+    Open Finance tab. Walk through:
+    <br>1. Add Revenue: $500 hvac-repair → Revenue card shows $500
+    <br>2. Add Cost (parts): $75 → Costs $75, Profit $425, Margin 85%
+    <br>3. Add Cost (labor): leave amount blank, 2 hours @ $45/hour → Costs $165, Profit $335, Margin 67%
+    <br>4. Show Export CSV button for monthly bookkeeping
+  </div>
+
+  <div class="explain">
+    <strong>Categories to remember:</strong> "parts" = materials. "labor" = time × rate (auto-calculated). Source = type of job (repair, install, maintenance).
+  </div>
+
+  <h3>3 Closing Questions</h3>
+  <div class="three-q">
+    <strong>Ask each. Pause. Silence.</strong>
+    <ol>
+      <li>"Do you have a clear picture right now of which jobs actually make you money?"</li>
+      <li>"What would it mean to know your real margin on every job?"</li>
+      <li>"Is that something you'd track if it was this simple?"</li>
+    </ol>
+  </div>
+</div>
+
+<!-- LIVE SETUP -->
+<div id="setup" class="page">
+  <h2>⚙️ Live Setup <span class="timing">5 min</span></h2>
+  <p class="subtitle">Get them running before you hang up. This is your competitive edge.</p>
+
+  <div class="you">
+    "Alright let's get you live right now. Takes about 5 minutes. I'll walk you through it on this call."
+  </div>
+
+  <h3>Setup Steps</h3>
+  <div class="action">
+    1. Confirm their tenant is created in the portal<br>
+    2. Assign their Twilio number (or shared if campaign isn't cleared)<br>
+    3. Confirm office SMS destination is their cell<br>
+    4. Confirm business name is correct on their account<br>
+    5. Have them dial forwarding code on their phone
+  </div>
+
+  <h3>Enable Forwarding (give to them clearly)</h3>
+  <div class="you">
+    "Grab your phone. Dial this exactly and hit call:"
+  </div>
+  <div class="code">*61*18885285584#</div>
+
+  <div class="action">Wait for them to dial it. Confirm they hear the carrier confirmation.</div>
+
+  <div class="you">
+    "Perfect. You're live. To disable later if you ever want to, dial this:"
+  </div>
+  <div class="code">##002#</div>
+
+  <h3>Final Live Test</h3>
+  <div class="action">
+    Call their number from your phone. Let it ring through to Vapi. Walk through a quick test together. Confirm they receive the SMS lead notification on their end.
+  </div>
+
+  <div class="you">
+    "That's it. You're fully running. Every missed call from this point forward gets caught and sent to you."
+  </div>
+</div>
+
+<!-- CLOSE -->
+<div id="close" class="page">
+  <h2>✅ Close + Book Follow-Up <span class="timing">2 min</span></h2>
+  <p class="subtitle">Don't ask — just book it.</p>
+
+  <div class="you">
+    "Let's go ahead and book another call two weeks out so I can check in on how it's been working for you, what worked, what didn't, and dial it in based on your feedback."
+  </div>
+
+  <div class="action">Pull up calendar immediately. Don't ask if they want to — just do it.</div>
+
+  <div class="you">
+    "Does [Day], [Date] at [Time] work for you?"
+  </div>
+
+  <div class="action">Lock in a specific day and time. Send the calendar invite before you hang up.</div>
+
+  <div class="you">
+    "Perfect. Sending the invite right now. Anything else before we wrap?"
+  </div>
+
+  <div class="action">Answer any questions. Then close clean.</div>
+
+  <div class="you">
+    "Alright man, talk in two weeks. Let me know if anything breaks before then."
+  </div>
+
+  <div class="checklist">
+    <strong>Before you hang up checklist:</strong>
+    <ul>
+      <li>Calendar invite for 2-week follow-up sent and confirmed received</li>
+      <li>They've successfully enabled call forwarding</li>
+      <li>They received at least one test SMS from the system</li>
+      <li>They can log into their portal</li>
+      <li>They have your direct number / email</li>
+    </ul>
+  </div>
+</div>
+
+<!-- OBJECTIONS -->
+<div id="objections" class="page">
+  <h2>❌ Objection Responses</h2>
+  <p class="subtitle">Keep them tight. One line. Then stop talking.</p>
+
+  <div class="objection-card">
+    <div class="obj-label">🤔 "I need to think about it"</div>
+    <div class="you">
+      "Totally — that's exactly why we start with the free trial. No commitment, no credit card. Just see what it catches for you over the next 30 days."
+    </div>
+  </div>
+
+  <div class="objection-card">
+    <div class="obj-label">💰 "What's the cost after?"</div>
+    <div class="you">
+      "Founding member rate is $150 a month locked for life. One converted missed call at an average HVAC job value covers the whole month. After that it's all upside."
+    </div>
+  </div>
+
+  <div class="objection-card">
+    <div class="obj-label">💻 "I already use [competitor]"</div>
+    <div class="you">
+      "Most of the guys we work with were using Jobber or Housecall Pro for scheduling. Those are great for dispatching. Torevez is specifically built for lead capture and follow-up automation — it actually fills the gap those tools leave open."
+    </div>
+  </div>
+
+  <div class="objection-card">
+    <div class="obj-label">⏰ "I'm too busy right now"</div>
+    <div class="you">
+      "Totally get it — that's literally why this exists. You're busy because you're in the field, which is why missed calls are happening in the first place. The whole point is it runs without you doing anything."
+    </div>
+  </div>
+
+  <div class="objection-card">
+    <div class="obj-label">🏢 "I have a receptionist / answering service"</div>
+    <div class="you">
+      "Does it text you the full lead the second the call ends, or do you have to wait for someone to pass the message? Ours does it instantly. Plus, the free trial means there's no risk in seeing if it catches things yours might miss."
+    </div>
+  </div>
+
+  <div class="objection-card">
+    <div class="obj-label">📧 "Send me info / I'll think about it"</div>
+    <div class="you">
+      "I get it. But honestly the best way to see if this works is just to try it — it's free, takes 5 minutes to set up, and you can shut it off anytime. Want me to just turn it on now and let you experience it for the next 30 days?"
+    </div>
+  </div>
+
+  <div class="objection-card">
+    <div class="obj-label">⚠️ "What about the refrigerant transition / supply chain?"</div>
+    <div class="you">
+      "Yeah those are real industry-wide issues — what we focus on at Torevez is the lead and revenue side. Tighter margins on equipment is actually why our finance tracker is so useful — knowing exactly what every job makes you matters more than ever."
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // EDIT MODE
+  let editMode = false;
+  function toggleEdit(){
+    editMode = !editMode;
+    const btn = document.getElementById('edit-toggle');
+    const editables = document.querySelectorAll('.you, .explain, .action, .checklist, .pivot-card, .three-q, .objection-card');
+    editables.forEach(el => {
+      el.contentEditable = editMode;
+      el.style.outline = editMode ? '1px dashed #ddcc6d' : 'none';
+      el.style.cursor = editMode ? 'text' : '';
+    });
+    if(editMode){
+      btn.textContent = '💾 Save & Exit Edit';
+      btn.style.background = '#ddcc6d';
+      btn.style.color = '#000';
+    } else {
+      btn.textContent = '✏️ Edit Demo';
+      btn.style.background = '';
+      btn.style.color = '';
+      localStorage.setItem('torevez_demo_html', document.querySelector('.main').innerHTML);
+      alert('Demo saved! Changes persist until you clear browser data.');
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('torevez_demo_html');
+    if(saved){
+      try { document.querySelector('.main').innerHTML = saved; } catch(e){}
+    }
+  });
+</script>
+<style>
+  .edit-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    background: #1f1a08;
+    color: #ddcc6d;
+    border: 2px solid #6a5a10;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .edit-btn:hover { background: #2a2410; }
+</style>
+<button class="edit-btn" id="edit-toggle" onclick="toggleEdit()">✏️ Edit Demo</button>
+</body>
+</html>

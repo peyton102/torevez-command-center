@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torevez, Daily Drive</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #f0f0f0;
+    min-height: 100vh;
+  }
+  header {
+    background: #0f0f0f;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+  }
+  .header-right {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .streak {
+    font-size: 12px;
+    color: #888;
+  }
+  .streak strong { color: #ff8c42; font-size: 14px; }
+  .reset-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .reset-btn:hover { background: #2a2a2a; color: #ccc; }
+
+  .progress-bar-wrap {
+    background: #0f0f0f;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 12px 20px;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #1a1a1a;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #22c55e);
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .progress-text {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    margin-top: 6px;
+  }
+  .progress-text strong { color: #fff; }
+
+  .main {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section {
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .count {
+    font-size: 11px;
+    color: #555;
+    font-weight: 600;
+  }
+
+  .task {
+    background: #151515;
+    border: 1px solid #252525;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: all 0.15s;
+  }
+  .task.done {
+    background: #0d1f0d;
+    border-color: #1a4a1a;
+    opacity: 0.65;
+  }
+  .task-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .task-header:hover { background: rgba(255,255,255,0.02); }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #444;
+    border-radius: 5px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .checkbox:hover { border-color: #888; }
+  .task.done .checkbox {
+    background: #22c55e;
+    border-color: #22c55e;
+  }
+  .task.done .checkbox::after {
+    content: '✓';
+    color: #fff;
+    font-weight: 900;
+    font-size: 14px;
+  }
+
+  .task-main { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.4;
+  }
+  .task.done .task-title {
+    color: #6a8a6a;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+  .task-meta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+  .task-meta .tag {
+    display: inline-block;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #888;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 6px;
+  }
+  .tag.linkedin { background: #0a1929; border-color: #1e3a5f; color: #6ba4d8; }
+  .tag.facebook { background: #0d1424; border-color: #1e2b4f; color: #7a9ad8; }
+  .tag.instagram { background: #1f0a1f; border-color: #4a1e4a; color: #d870a8; }
+  .tag.loom { background: #1a0a1a; border-color: #4a1e4a; color: #b87adc; }
+  .tag.email { background: #1f1408; border-color: #4a3010; color: #ddaa4d; }
+  .tag.crm { background: #0a1f18; border-color: #1a5a40; color: #4dbb8a; }
+  .tag.reddit { background: #2a1408; border-color: #5a3a10; color: #ff8c42; }
+  .tag.youtube { background: #2a0a0a; border-color: #5a1a1a; color: #ff6666; }
+  .tag.twitter { background: #0a0a0a; border-color: #444; color: #ccc; }
+
+  .expand-arrow {
+    color: #666;
+    font-size: 14px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .task.expanded .expand-arrow { transform: rotate(90deg); }
+
+  .task-details {
+    display: none;
+    padding: 0 16px 16px 50px;
+    border-top: 1px solid #1a1a1a;
+    background: #0d0d0d;
+  }
+  .task.expanded .task-details { display: block; }
+  .task-details h4 {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 14px 0 6px 0;
+    font-weight: 700;
+  }
+  .task-details p {
+    font-size: 13px;
+    color: #bbb;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+  .task-details ul {
+    list-style: none;
+    margin-bottom: 8px;
+  }
+  .task-details li {
+    font-size: 13px;
+    color: #bbb;
+    line-height: 1.6;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .task-details li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #ff8c42;
+  }
+  .task-details .script {
+    background: #0a1a14;
+    border-left: 3px solid #22c55e;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    color: #7dcc7d;
+    line-height: 1.6;
+    margin: 8px 0;
+    font-style: italic;
+  }
+  .task-details .warning {
+    background: #1f1408;
+    border-left: 3px solid #ff8c42;
+    padding: 8px 12px;
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    color: #ddaa4d;
+    margin: 8px 0;
+  }
+
+  .resource-section {
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 28px;
+  }
+  .resource-section h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 14px;
+  }
+  .channel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .channel-chip {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #aaa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .timeline-box {
+    background: #1a1f0a;
+    border: 1px solid #4a5a1a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 14px;
+  }
+  .timeline-box h3 {
+    font-size: 13px;
+    color: #ddcc6d;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .timeline-box p {
+    font-size: 13px;
+    color: #aaa87d;
+    line-height: 1.6;
+  }
+  .timeline-box strong { color: #ffee99; }
+
+  .complete-banner {
+    display: none;
+    background: linear-gradient(135deg, #1a4a1a, #2a6a2a);
+    border: 2px solid #4dcc7d;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .complete-banner.show { display: block; }
+  .complete-banner h2 {
+    color: #fff;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .complete-banner p {
+    color: #b8e0b8;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ DAILY DRIVE</h1>
+  <div class="header-right">
+    <div class="streak">🔥 Streak: <strong id="streak">0</strong> days</div>
+    <button class="reset-btn" onclick="resetDay()">RESET DAY</button>
+  </div>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text"><strong id="doneCount">0</strong> / <span id="totalCount">16</span> done today</div>
+</div>
+
+<div class="main">
+
+  <div class="complete-banner" id="completeBanner">
+    <h2>🎯 Day Complete</h2>
+    <p>Every non-negotiable hit. This is how it gets built. See you tomorrow.</p>
+  </div>
+
+  <!-- COLD CALLS (TUES/THURS ONLY) -->
+  <div class="section">
+    <div class="section-title">
+      📞 Cold Calls (Tuesday + Thursday only)
+      <span class="count" id="call-count">0/2</span>
+    </div>
+
+    <div class="task" data-id="call-dials">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">15 cold dials</div>
+          <div class="task-meta"><span class="tag" style="background:#1f1408;border:1px solid #4a3010;color:#ddaa4d;">Calls</span> FL HVAC owner-operators, 9am to 11am</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>The ramp (do not skip)</h4>
+        <ul>
+          <li>Week 1 (Thurs only): 15 dials</li>
+          <li>Week 2 (Tues + Thurs): 15 dials each</li>
+          <li>Week 3 (Tues + Thurs): 20 dials each</li>
+          <li>Week 4 (Tues + Thurs): 25 dials each</li>
+          <li>Week 5+: 30 dials each, only if energy holds</li>
+        </ul>
+        <p>15 dials done sharp beats 30 done burned out. A defeated voice loses the call before the prospect even hears the offer.</p>
+        <h4>The block</h4>
+        <p>9am to 11am, Tuesday and Thursday only. Phone in airplane mode after 11. No calls outside this window.</p>
+        <h4>The opener (60 seconds max)</h4>
+        <div class="script">"Hey [Name], Peyton with Torevez, real quick. I built an AI receptionist that catches the calls you miss while you are on jobs. Texts you the lead in 10 seconds. You do not pay me a dollar until it catches you a paying job. Sound worth a look?"</div>
+        <h4>The ask</h4>
+        <ul>
+          <li>If interested: book a 10-minute demo for that afternoon or next call day</li>
+          <li>If "send info": "I will, what email is best?" then log to email1 status</li>
+          <li>If "not now": "Got it, mind if I check in 30 days?" log and schedule</li>
+          <li>If "no": "Appreciate the time" and move on</li>
+        </ul>
+        <div class="warning">Goal is conversations and demos booked, not dials hit. If you book a demo at dial 8, finish the block anyway. Momentum protects the next call day.</div>
+      </div>
+    </div>
+
+    <div class="task" data-id="call-log">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">Log every dial in CRM</div>
+          <div class="task-meta"><span class="tag crm">CRM</span> Update status before next call</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>Rule</h4>
+        <p>Log the outcome before dialing the next number. If you wait until end of block you will forget half of them and the follow-ups die.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLD EMAIL + DMs (DAILY) -->
+  <div class="section">
+    <div class="section-title">
+      ✉️ Cold Outreach (Daily)
+      <span class="count" id="cold-count">0/3</span>
+    </div>
+
+    <div class="task" data-id="cold-email">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">10 cold emails (Tues/Thurs) or 15 (Mon/Wed/Fri)</div>
+          <div class="task-meta"><span class="tag email">Email</span> Rotate across 3 inboxes</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>The system</h4>
+        <ul>
+          <li>Pull from CRM "uncontacted" with email addresses</li>
+          <li>Use Email 1 template from CRM (Quick question for HVAC owners)</li>
+          <li>Rotate across 3 inboxes so no single one sends more than 30 cold/day</li>
+          <li>Email 2 follow-up 4 days after Email 1, Email 3 four days after that</li>
+        </ul>
+        <h4>Rule</h4>
+        <p>Personalize the subject line with the company name. "Missed calls at [Company]?" beats "Quick question for HVAC owners" every time.</p>
+      </div>
+    </div>
+
+    <div class="task" data-id="cold-ig-dms">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">20 Instagram DMs to FL HVAC owners</div>
+          <div class="task-meta"><span class="tag instagram">IG DMs</span> Proactive, not reactive</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>How to find them</h4>
+        <ul>
+          <li>Explore tab: search "HVAC Florida", "AC repair Florida", "Heating cooling FL"</li>
+          <li>Pick owner-operator accounts: small followers, owner name visible, real work photos</li>
+          <li>Skip big chains, marketing agencies, anything corporate</li>
+        </ul>
+        <h4>The DM</h4>
+        <div class="script">"Hey [Name], saw your work in [City]. Quick one: how often do you miss calls when you are out on jobs? Built an AI that catches them and texts you the lead in 10 seconds. Free until it catches you a paying job. Worth a look?"</div>
+      </div>
+    </div>
+
+    <div class="task" data-id="cold-fb-dms">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">20 Facebook DMs to HVAC owners or commenters</div>
+          <div class="task-meta"><span class="tag facebook">FB DMs</span> Cold + warm mix</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>Who to DM</h4>
+        <ul>
+          <li>Anyone who commented on your value-bomb posts</li>
+          <li>HVAC business pages in FL with active engagement</li>
+          <li>Members of HVAC FB groups you are in</li>
+        </ul>
+        <h4>The opener</h4>
+        <div class="script">"Hey [name], saw your comment about [pain point]. Mind if I share what I have seen work for other HVAC owners?"</div>
+        <p>For cold DMs use the IG script above adapted to FB.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINKEDIN -->
+  <div class="section">
+    <div class="section-title">
+      🔵 LinkedIn (Founder Brand)
+      <span class="count" id="li-count">0/2</span>
+    </div>
+
+    <div class="task" data-id="li-post">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">1 LinkedIn post</div>
+          <div class="task-meta"><span class="tag linkedin">LinkedIn</span> Founder journey, raw and honest</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>What to post</h4>
+        <p>One post about your founder journey, what you're building, what you learned today, what's hard, what worked. Raw and honest. No corporate language.</p>
+        <h4>Topic ideas</h4>
+        <ul>
+          <li>Something specific that happened on a call or demo today</li>
+          <li>A lesson from rejection or a win</li>
+          <li>A behind-the-scenes look at building Torevez</li>
+          <li>A take on HVAC industry pain points</li>
+          <li>Numbers update, calls, demos, customers (transparency wins)</li>
+        </ul>
+        <h4>Rules</h4>
+        <ul>
+          <li>Don't post your age, let the work speak first</li>
+          <li>Keep it under 200 words</li>
+          <li>End with a question or thought to invite comments</li>
+          <li>Post between 8-10am or 5-7pm for best reach</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task" data-id="li-comments">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">5 thoughtful comments</div>
+          <div class="task-meta"><span class="tag linkedin">LinkedIn</span> HVAC/SMB posts, add value, don't pitch</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>Goal</h4>
+        <p>Get your name seen in HVAC and small business circles. Comments build inbound interest because their followers see your name.</p>
+        <h4>What to comment on</h4>
+        <ul>
+          <li>HVAC owner posts about their business</li>
+          <li>SaaS founder posts about lessons learned</li>
+          <li>Posts in your network where you have a real take to add</li>
+        </ul>
+        <h4>Rules</h4>
+        <ul>
+          <li>2-3 sentences minimum, not "great post!"</li>
+          <li>Add a real insight or your own experience</li>
+          <li>Never pitch Torevez in comments</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- FACEBOOK -->
+  <div class="section">
+    <div class="section-title">
+      🔷 Facebook (Community Plays)
+      <span class="count" id="fb-count">0/3</span>
+    </div>
+
+    <div class="task" data-id="fb-check">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">Check all active value-bomb posts</div>
+          <div class="task-meta"><span class="tag facebook">Facebook</span> Reply to every comment</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>What to do</h4>
+        <p>Go through every Facebook group post you've made in the last 7 days. Reply to every single comment, even short ones. Keep engagement alive.</p>
+        <h4>How to reply</h4>
+        <ul>
+          <li>Ask a follow-up question to dig deeper</li>
+          <li>Share a related insight</li>
+          <li>Thank them and start a conversation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task" data-id="fb-post">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">1 new value-bomb post</div>
+          <div class="task-meta"><span class="tag facebook">Facebook</span> Rotate through your HVAC groups</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>What to post</h4>
+        <p>A question or insight that gets HVAC owners talking. No pitch, no software mention. Pure value or curiosity.</p>
+        <h4>Format options</h4>
+        <ul>
+          <li>"What's your biggest headache running your HVAC company right now?"</li>
+          <li>"How do you handle missed calls when you're on a job?"</li>
+          <li>"How we helped a contractor save X hours last week..." (no product name)</li>
+          <li>"Most HVAC owners lose Y% of leads from missed calls. Here's what to do..."</li>
+        </ul>
+        <h4>Rules</h4>
+        <ul>
+          <li>Rotate groups, different group each day</li>
+          <li>Never mention Torevez in the post</li>
+          <li>DM anyone who comments with real engagement</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task" data-id="fb-dms">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">DM anyone who commented a real pain point</div>
+          <div class="task-meta"><span class="tag facebook">Facebook</span> Soft opener, no pitch</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>Who to DM</h4>
+        <p>Anyone who commented on your posts with a real pain point or business problem. Not the haters or jokers.</p>
+        <h4>The opener</h4>
+        <div class="script">"Hey [name], saw your comment about [their pain point]. Mind if I share what I've been seeing work for other HVAC owners?"</div>
+        <h4>Rules</h4>
+        <ul>
+          <li>Short, curious, no pitch</li>
+          <li>Let them respond before saying anything about Torevez</li>
+          <li>If they engage, ask more questions before pitching</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTAGRAM -->
+  <div class="section">
+    <div class="section-title">
+      🟣 Instagram (Torevez Brand)
+      <span class="count" id="ig-count">0/1</span>
+    </div>
+
+    <div class="task" data-id="ig-business">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">1 Torevez Instagram post</div>
+          <div class="task-meta"><span class="tag instagram">Torevez IG</span> Product, tip, screenshot, or customer story</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>What to post</h4>
+        <p>Something specifically about HVAC business or Torevez. Educational, helpful, or a glimpse of the product.</p>
+        <h4>Ideas</h4>
+        <ul>
+          <li>A specific HVAC business tip or stat</li>
+          <li>Screenshot of a dashboard or feature</li>
+          <li>A short video of the AI receptionist answering a call</li>
+          <li>A common HVAC problem you solve</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOOM AUDITS (WARM LEADS ONLY) -->
+  <div class="section">
+    <div class="section-title">
+      🎬 Loom Audit (Warm Leads Only)
+      <span class="count" id="loom-count">0/1</span>
+    </div>
+
+    <div class="task" data-id="loom-audits">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">1 Loom for a warm lead (if any in pipe)</div>
+          <div class="task-meta"><span class="tag loom">Loom</span> Personalized 60-90s, only for engaged leads</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>The rule</h4>
+        <p>Loom audits are no longer a cold-outreach play. They take too long per touch. Use them only on warm leads who replied but have not booked a demo yet.</p>
+        <h4>Loom script structure</h4>
+        <ul>
+          <li>0-15s: Hey [name], saw your site, noticed something specific</li>
+          <li>15-45s: Show the gap on screen, explain the cost</li>
+          <li>45-75s: Show Torevez briefly fixing it</li>
+          <li>75-90s: "Happy to walk through this in 10 min, link below"</li>
+        </ul>
+        <p>If no warm leads need a Loom today, check this off and move on.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMUNITIES -->
+  <div class="section">
+    <div class="section-title">
+      💬 Long-Tail SEO
+      <span class="count" id="comm-count">0/1</span>
+    </div>
+
+    <div class="task" data-id="quora">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">1 Quora answer</div>
+          <div class="task-meta"><span class="tag reddit">Quora</span> Evergreen, found via search months later</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>What to search</h4>
+        <ul>
+          <li>"HVAC missed calls"</li>
+          <li>"Best software for HVAC small business"</li>
+          <li>"How to grow an HVAC business"</li>
+          <li>"How to handle HVAC leads"</li>
+        </ul>
+        <h4>How to answer</h4>
+        <ul>
+          <li>Real depth, 300+ words</li>
+          <li>Lead with the problem and a solution they can use without Torevez</li>
+          <li>Mention Torevez at the end as one option, not the only one</li>
+          <li>Link torevez.com once at the bottom</li>
+        </ul>
+        <h4>Why this works</h4>
+        <p>Quora answers get indexed by Google and ChatGPT. One good answer brings traffic for years.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="section">
+    <div class="section-title">
+      ✅ Pipeline Management
+      <span class="count" id="pipe-count">0/3</span>
+    </div>
+
+    <div class="task" data-id="pipe-followup">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">Follow up on warm leads</div>
+          <div class="task-meta"><span class="tag crm">CRM</span> Anyone marked "interested" or "call back"</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>What to do</h4>
+        <p>Open the CRM, filter to "interested" and "call back" leads. Text or message every one that hasn't been contacted in 3+ days.</p>
+        <h4>Follow-up text template</h4>
+        <div class="script">"Hey [name], Peyton from Torevez. Wanted to check in, still good to chat sometime this week?"</div>
+      </div>
+    </div>
+
+    <div class="task" data-id="pipe-log">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">Log every interaction in CRM</div>
+          <div class="task-meta"><span class="tag crm">CRM</span> Update statuses, dates, notes</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>Why this matters</h4>
+        <p>If it's not in the CRM, it didn't happen. You'll lose track of warm leads and burn opportunities.</p>
+        <h4>What to log</h4>
+        <ul>
+          <li>Every call, text, email, DM</li>
+          <li>Status changes</li>
+          <li>Notes from the conversation</li>
+          <li>Next action and date</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="task" data-id="pipe-warmup">
+      <div class="task-header" onclick="toggleTask(event, this.parentElement)">
+        <div class="checkbox" onclick="event.stopPropagation(); toggleDone(this.parentElement.parentElement)"></div>
+        <div class="task-main">
+          <div class="task-title">Prep tomorrow's demos and dials</div>
+          <div class="task-meta"><span class="tag crm">Prep</span> Names, scripts, calendar before laptop closes</div>
+        </div>
+        <span class="expand-arrow">▶</span>
+      </div>
+      <div class="task-details">
+        <h4>End-of-day prep checklist</h4>
+        <ul>
+          <li>If tomorrow is Tues/Thurs: 60+ names loaded in CRM, sorted, ready to dial at 9am</li>
+          <li>Demo slots blocked on calendar for the afternoon</li>
+          <li>Any warm lead replies answered before 5pm hard stop</li>
+          <li>Quora answer queued or scheduled</li>
+          <li>Tomorrow's LinkedIn post drafted</li>
+        </ul>
+        <p>If this is not done by 5pm, tomorrow morning gets eaten by setup instead of execution.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESOURCE: ALL CHANNELS -->
+  <div class="resource-section">
+    <h2>🎯 Weekly Plays (Do When Ready, Not Daily)</h2>
+    <div class="channel-grid">
+      <div class="channel-chip">15 min on Reddit (r/HVAC, r/smallbusiness)</div>
+      <div class="channel-chip">1 short video (YouTube Shorts or TikTok)</div>
+      <div class="channel-chip">10 LinkedIn connection requests (HVAC owners)</div>
+      <div class="channel-chip">List on G2, Capterra, AlternativeTo, SaaSHub</div>
+      <div class="channel-chip">DM HVAC podcast hosts (under 10k subs)</div>
+      <div class="channel-chip">Email trade associations (ACCA, PHCC)</div>
+      <div class="channel-chip">Get video testimonial from first user</div>
+      <div class="channel-chip">Partnership outreach (parts suppliers, uniform companies)</div>
+      <div class="channel-chip">Voice notes via LinkedIn DM</div>
+      <div class="channel-chip">Twitter/X complaint replies (search "missed call HVAC")</div>
+    </div>
+
+    <h2 style="margin-top: 22px;">📋 All Cold Outreach Channels (No Calling Required)</h2>
+    <div class="channel-grid">
+      <div class="channel-chip">LinkedIn DMs (after engagement)</div>
+      <div class="channel-chip">LinkedIn posts (inbound)</div>
+      <div class="channel-chip">LinkedIn connection requests</div>
+      <div class="channel-chip">Facebook group value-bombs</div>
+      <div class="channel-chip">Facebook DMs to commenters</div>
+      <div class="channel-chip">Instagram DMs to HVAC accounts</div>
+      <div class="channel-chip">Instagram founder content</div>
+      <div class="channel-chip">Twitter/X complaint replies</div>
+      <div class="channel-chip">Reddit r/HVAC, r/smallbusiness</div>
+      <div class="channel-chip">Quora evergreen answers</div>
+      <div class="channel-chip">YouTube Shorts</div>
+      <div class="channel-chip">TikTok HVAC tips</div>
+      <div class="channel-chip">Cold email (after warmup)</div>
+      <div class="channel-chip">Loom video audits</div>
+      <div class="channel-chip">Voice notes via DM/SMS</div>
+      <div class="channel-chip">Referral asks to network</div>
+      <div class="channel-chip">Partnership outreach</div>
+      <div class="channel-chip">Stealth audits</div>
+      <div class="channel-chip">Podcast guest appearances</div>
+      <div class="channel-chip">Trade association directories</div>
+    </div>
+
+    <div class="timeline-box">
+      <h3>⏱️ 30-Day Sprint to 5 Customers (Ends July 24)</h3>
+      <p>Today is June 10. The 3-week no-call test is over. Cold calls back in. You have 44 days to land 5 founding customers.</p>
+      <p style="margin-top: 8px;"><strong>The math:</strong> 5 customers = ~25 demos booked = ~150 real conversations = ~1,500 touches. That is ~50 touches per working day across all channels.</p>
+      <p style="margin-top: 8px;"><strong>Pricing (locked):</strong> Missed-call AI is $50/month founding, $75 standard. Full system is $75 founding, $150 standard. $0 until it catches a paying job. 5 founding spots total.</p>
+      <p style="margin-top: 8px;"><strong>Weekly checkpoint (every Sunday):</strong> Did demos booked match the pace? If under 6 demos/week, the daily quotas got skipped. Catch up or fall behind.</p>
+      <p style="margin-top: 8px;"><strong>Hard rule:</strong> V1 is frozen. No product builds. If a paying customer asks for something, build it. Otherwise, sales only.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const TASKS = [
+    'call-dials','call-log',
+    'cold-email','cold-ig-dms','cold-fb-dms',
+    'li-post','li-comments',
+    'fb-check','fb-post','fb-dms',
+    'ig-business',
+    'loom-audits',
+    'quora',
+    'pipe-followup','pipe-log','pipe-warmup'
+  ];
+
+  const SECTION_MAP = {
+    'call-count': ['call-dials','call-log'],
+    'cold-count': ['cold-email','cold-ig-dms','cold-fb-dms'],
+    'li-count': ['li-post','li-comments'],
+    'fb-count': ['fb-check','fb-post','fb-dms'],
+    'ig-count': ['ig-business'],
+    'loom-count': ['loom-audits'],
+    'comm-count': ['quora'],
+    'pipe-count': ['pipe-followup','pipe-log','pipe-warmup']
+  };
+
+  function todayKey() {
+    const d = new Date();
+    return `daily-${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  }
+  function yesterdayKey() {
+    const d = new Date();
+    d.setDate(d.getDate()-1);
+    return `daily-${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+  }
+
+  function loadDay() {
+    const key = todayKey();
+    const raw = localStorage.getItem(key);
+    const data = raw ? JSON.parse(raw) : {};
+    TASKS.forEach(id => {
+      const el = document.querySelector(`[data-id="${id}"]`);
+      if (el && data[id]) el.classList.add('done');
+    });
+    updateCounts();
+    updateStreak();
+  }
+
+  function saveDay() {
+    const data = {};
+    TASKS.forEach(id => {
+      const el = document.querySelector(`[data-id="${id}"]`);
+      if (el && el.classList.contains('done')) data[id] = true;
+    });
+    localStorage.setItem(todayKey(), JSON.stringify(data));
+  }
+
+  function toggleDone(taskEl) {
+    taskEl.classList.toggle('done');
+    saveDay();
+    updateCounts();
+    updateStreak();
+  }
+
+  function toggleTask(e, taskEl) {
+    if (e.target.classList.contains('checkbox')) return;
+    taskEl.classList.toggle('expanded');
+  }
+
+  function updateCounts() {
+    let done = 0;
+    TASKS.forEach(id => {
+      const el = document.querySelector(`[data-id="${id}"]`);
+      if (el && el.classList.contains('done')) done++;
+    });
+    document.getElementById('doneCount').textContent = done;
+    document.getElementById('totalCount').textContent = TASKS.length;
+    document.getElementById('progressFill').style.width = `${(done/TASKS.length)*100}%`;
+
+    Object.keys(SECTION_MAP).forEach(countId => {
+      const ids = SECTION_MAP[countId];
+      let secDone = 0;
+      ids.forEach(id => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (el && el.classList.contains('done')) secDone++;
+      });
+      document.getElementById(countId).textContent = `${secDone}/${ids.length}`;
+    });
+
+    document.getElementById('completeBanner').classList.toggle('show', done === TASKS.length);
+  }
+
+  function updateStreak() {
+    let streak = 0;
+    const d = new Date();
+    // walk backwards from today
+    for (let i = 0; i < 365; i++) {
+      const checkD = new Date();
+      checkD.setDate(d.getDate() - i);
+      const key = `daily-${checkD.getFullYear()}-${(checkD.getMonth()+1).toString().padStart(2,'0')}-${checkD.getDate().toString().padStart(2,'0')}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        if (i === 0) continue;
+        break;
+      }
+      const data = JSON.parse(raw);
+      const doneCount = Object.values(data).filter(v => v).length;
+      if (doneCount === TASKS.length) {
+        streak++;
+      } else {
+        if (i === 0) break;
+        break;
+      }
+    }
+    document.getElementById('streak').textContent = streak;
+  }
+
+  function resetDay() {
+    if (!confirm('Reset all tasks for today? This clears your progress.')) return;
+    document.querySelectorAll('.task').forEach(t => t.classList.remove('done'));
+    localStorage.removeItem(todayKey());
+    updateCounts();
+    updateStreak();
+  }
+
+  loadDay();
+</script>
+
+</body>
+</html>

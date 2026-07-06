@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torevez CRM</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--border:#2a2a38;
+    --accent:#4f8cff;--green:#22c55e;--orange:#f97316;--red:#ef4444;
+    --yellow:#eab308;--purple:#a855f7;--text:#e8e8f0;--text2:#8888a8;--text3:#555570;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--accent);}
+  .logo span{color:var(--text2);}
+  .header-actions{display:flex;gap:10px;align-items:center;}
+  .btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
+  .btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#3a7aee;}
+  .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-green{background:var(--green);color:#fff;}.btn-green:hover{background:#16a34a;}
+  .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;}
+  .app{display:flex;height:calc(100vh - 56px);}
+  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:16px 12px;flex-shrink:0;overflow-y:auto;}
+  .sidebar-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;padding:0 8px;margin-bottom:6px;}
+  .sidebar-section{margin-bottom:24px;}
+  .nav-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);transition:all 0.12s;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(79,140,255,0.12);color:var(--accent);}
+  .nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:8px;}
+  .nav-item-left{display:flex;align-items:center;}
+  .badge{font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px;background:var(--surface2);color:var(--text2);}
+  .nav-item.active .badge{background:rgba(79,140,255,0.2);color:var(--accent);}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .toolbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);}
+  .toolbar-left{display:flex;align-items:center;gap:12px;}
+  .toolbar-right{display:flex;align-items:center;gap:8px;}
+  .view-title{font-size:15px;font-weight:600;color:var(--text);}
+  .search-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--text);width:220px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;}
+  .search-box:focus{border-color:var(--accent);}
+  .search-box::placeholder{color:var(--text3);}
+  .batch-bar{display:none;padding:10px 24px;background:rgba(79,140,255,0.1);border-bottom:1px solid rgba(79,140,255,0.3);align-items:center;gap:12px;}
+  .stats-bar{display:flex;gap:24px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);}
+  .stat{display:flex;flex-direction:column;}
+  .stat-num{font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:var(--text);}
+  .stat-label{font-size:11px;color:var(--text3);margin-top:1px;}
+  .table-wrap{flex:1;overflow-y:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead{position:sticky;top:0;z-index:10;}
+  th{background:var(--surface2);color:var(--text2);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:10px 16px;border-bottom:1px solid rgba(42,42,56,0.6);color:var(--text);vertical-align:middle;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .td-name{font-weight:500;}
+  .td-phone{font-family:'Space Mono',monospace;font-size:12px;color:var(--text2);}
+  .td-email{font-size:12px;color:var(--accent);}
+  .td-email.empty{color:var(--text3);font-style:italic;}
+  .status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .status-dot{width:6px;height:6px;border-radius:50%;}
+  .s-uncontacted{background:rgba(136,136,168,0.12);color:var(--text2);}
+  .s-uncontacted .status-dot{background:var(--text2);}
+  .s-email1{background:rgba(79,140,255,0.12);color:var(--accent);}
+  .s-email1 .status-dot{background:var(--accent);}
+  .s-email2{background:rgba(124,58,237,0.12);color:var(--purple);}
+  .s-email2 .status-dot{background:var(--purple);}
+  .s-email3{background:rgba(168,85,247,0.15);color:#c084fc;}
+  .s-email3 .status-dot{background:#c084fc;}
+  .s-email4{background:rgba(217,70,239,0.15);color:#e879f9;}
+  .s-email4 .status-dot{background:#e879f9;}
+  .s-email5{background:rgba(244,114,182,0.15);color:#f472b6;}
+  .s-email5 .status-dot{background:#f472b6;}
+  .s-email6{background:rgba(239,68,68,0.15);color:#fb7185;}
+  .s-email6 .status-dot{background:#fb7185;}
+  .s-called{background:rgba(234,179,8,0.12);color:var(--yellow);}
+  .s-called .status-dot{background:var(--yellow);}
+  .s-interested{background:rgba(34,197,94,0.12);color:var(--green);}
+  .s-interested .status-dot{background:var(--green);}
+  .s-notinterested{background:rgba(239,68,68,0.12);color:var(--red);}
+  .s-notinterested .status-dot{background:var(--red);}
+  .s-signedup{background:rgba(34,197,94,0.25);color:#4ade80;}
+  .s-signedup .status-dot{background:#4ade80;}
+  .s-bounced{background:rgba(249,115,22,0.12);color:var(--orange);}
+  .s-bounced .status-dot{background:var(--orange);}
+  .s-toobig{background:rgba(168,85,247,0.12);color:#c084fc;}
+  .s-toobig .status-dot{background:#c084fc;}
+  .type-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;}
+  .type-email{background:rgba(79,140,255,0.15);color:var(--accent);}
+  .type-phone{background:rgba(249,115,22,0.15);color:var(--orange);}
+  .action-btn{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all 0.12s;font-family:'DM Sans',sans-serif;}
+  .action-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .actions-cell{display:flex;gap:6px;align-items:center;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+  .modal-overlay.hidden{display:none;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+  .modal-title{font-size:17px;font-weight:600;margin-bottom:20px;color:var(--text);}
+  .form-group{margin-bottom:14px;}
+  .form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;}
+  .form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
+  .form-select{cursor:pointer;}
+  .form-textarea{min-height:80px;resize:vertical;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+  .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+  .status-option{padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;transition:all 0.12s;display:flex;align-items:center;gap:8px;}
+  .status-option:hover{border-color:var(--accent);background:rgba(79,140,255,0.08);}
+  .status-option.selected{border-color:var(--accent);background:rgba(79,140,255,0.15);color:var(--accent);}
+  .empty-state{padding:60px 24px;text-align:center;color:var(--text3);}
+  .export-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text2);max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--text);z-index:9999;transform:translateY(80px);opacity:0;transition:all 0.3s;max-width:300px;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-color:var(--green);}
+  .toast.error{border-color:var(--red);}
+  .loading{text-align:center;padding:40px;color:var(--text2);font-size:14px;}
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  .review-count{font-size:11px;color:var(--text3);}
+  .outcome-badge{font-size:11px;color:var(--text2);font-style:italic;}
+  .hidden{display:none!important;}
+  .db-status{font-size:11px;padding:3px 8px;border-radius:4px;margin-left:8px;}
+  .db-ok{background:rgba(34,197,94,0.15);color:var(--green);}
+  .db-err{background:rgba(239,68,68,0.15);color:var(--red);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">TOREVEZ <span>/ CRM</span> <span class="db-status" id="db-status">connecting...</span></div>
+  <div class="header-actions">
+    <button class="btn btn-secondary btn-sm" onclick="openImportModal()">📥 Import CSV</button>
+    <button class="btn btn-secondary btn-sm" onclick="openAddModal()">+ Add Contact</button>
+    <button class="btn btn-secondary btn-sm" onclick="deleteAllContacts()" style="border-color:#ef4444;color:#ef4444;">🗑 Delete All</button>
+    <button class="btn btn-primary btn-sm" id="gmail-btn" onclick="initGmail()">📧 Connect Gmail</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Views</div>
+      <div class="nav-item active" onclick="setView('all')" id="nav-all">
+        <div class="nav-item-left"><div class="nav-dot" style="background:#8888a8"></div>All Contacts</div>
+        <span class="badge" id="count-all">0</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">By Status</div>
+      <div class="nav-item" onclick="setView('uncontacted')" id="nav-uncontacted"><div class="nav-item-left"><div class="nav-dot" style="background:#8888a8"></div>Uncontacted</div><span class="badge" id="count-uncontacted">0</span></div>
+      <div class="nav-item" onclick="setView('email1')" id="nav-email1"><div class="nav-item-left"><div class="nav-dot" style="background:#4f8cff"></div>Email 1 Sent</div><span class="badge" id="count-email1">0</span></div>
+      <div class="nav-item" onclick="setView('email2')" id="nav-email2"><div class="nav-item-left"><div class="nav-dot" style="background:#7c3aed"></div>Email 2 Sent</div><span class="badge" id="count-email2">0</span></div>
+      <div class="nav-item" onclick="setView('email3')" id="nav-email3"><div class="nav-item-left"><div class="nav-dot" style="background:#a855f7"></div>Email 3 Sent</div><span class="badge" id="count-email3">0</span></div>
+      <div class="nav-item" onclick="setView('email4')" id="nav-email4"><div class="nav-item-left"><div class="nav-dot" style="background:#e879f9"></div>Email 4 Sent</div><span class="badge" id="count-email4">0</span></div>
+      <div class="nav-item" onclick="setView('email5')" id="nav-email5"><div class="nav-item-left"><div class="nav-dot" style="background:#f472b6"></div>Email 5 Sent</div><span class="badge" id="count-email5">0</span></div>
+      <div class="nav-item" onclick="setView('email6')" id="nav-email6"><div class="nav-item-left"><div class="nav-dot" style="background:#fb7185"></div>Email 6 Sent</div><span class="badge" id="count-email6">0</span></div>
+      <div class="nav-item" onclick="setView('called')" id="nav-called"><div class="nav-item-left"><div class="nav-dot" style="background:#eab308"></div>Called</div><span class="badge" id="count-called">0</span></div>
+      <div class="nav-item" onclick="setView('interested')" id="nav-interested"><div class="nav-item-left"><div class="nav-dot" style="background:#22c55e"></div>Interested</div><span class="badge" id="count-interested">0</span></div>
+      <div class="nav-item" onclick="setView('notinterested')" id="nav-notinterested"><div class="nav-item-left"><div class="nav-dot" style="background:#ef4444"></div>Not Interested</div><span class="badge" id="count-notinterested">0</span></div>
+      <div class="nav-item" onclick="setView('signedup')" id="nav-signedup"><div class="nav-item-left"><div class="nav-dot" style="background:#4ade80"></div>Signed Up 🎉</div><span class="badge" id="count-signedup">0</span></div>
+      <div class="nav-item" onclick="setView('bounced')" id="nav-bounced"><div class="nav-item-left"><div class="nav-dot" style="background:#f97316"></div>Bounced</div><span class="badge" id="count-bounced">0</span></div>
+      <div class="nav-item" onclick="setView('toobig')" id="nav-toobig"><div class="nav-item-left"><div class="nav-dot" style="background:#c084fc"></div>Too Big</div><span class="badge" id="count-toobig">0</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Today</div>
+      <div class="nav-item" onclick="setView('todaycalls')" id="nav-todaycalls">
+        <div class="nav-item-left"><div class="nav-dot" style="background:#22c55e"></div>Today's Calls</div>
+        <span class="badge" id="count-todaycalls">0</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="nav-item" onclick="setView('hasEmail')" id="nav-hasEmail"><div class="nav-item-left"><div class="nav-dot" style="background:#4f8cff"></div>Has Email</div><span class="badge" id="count-hasEmail">0</span></div>
+      <div class="nav-item" onclick="setView('phoneOnly')" id="nav-phoneOnly"><div class="nav-item-left"><div class="nav-dot" style="background:#f97316"></div>Phone Only</div><span class="badge" id="count-phoneOnly">0</span></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="view-title" id="view-title">All Contacts</span>
+        <button class="btn btn-secondary btn-sm" onclick="selectAll()">☑ Select All</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectFirstN()">🔢 Select First N</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectByLetter()">🔤 Select By Letter</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectByDateSent()">📅 Select By Date Sent</button>
+      </div>
+      <div class="toolbar-right">
+        <input class="search-box" type="text" placeholder="Search..." oninput="renderTable()" id="search-input">
+      </div>
+    </div>
+
+    <div class="batch-bar" id="batch-bar">
+      <span style="font-size:13px;color:var(--accent);font-weight:500;"><span id="batch-count">0</span> selected</span>
+      <select id="batch-from-select" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;"><option value="peyton@torevez.com">peyton@torevez.com</option><option value="pmadden@torevez.com">pmadden@torevez.com</option><option value="peytonmadden@torevez.com">peytonmadden@torevez.com</option></select>
+      <button class="btn btn-primary btn-sm" id="batch-send-btn" onclick="batchSend()">📤 Send Email</button>
+      <button class="btn btn-sm" onclick="deleteSelected()" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid #ef4444;">🗑 Delete Selected</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearSelection()">Clear</button>
+    </div>
+
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <div class="table-wrap">
+      <div class="loading" id="loading">Loading contacts from database...</div>
+      <table id="main-table" style="display:none">
+        <thead>
+          <tr>
+            <th>📞</th><th>Business</th><th>Phone</th><th>Email</th><th>Reviews</th>
+            <th>Status</th><th>Last Email</th><th>Outcome</th><th>Notes</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div id="empty-state" class="empty-state hidden">
+        <div style="font-size:40px;margin-bottom:12px;">📭</div>
+        <div style="font-size:14px;">No contacts in this view</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay hidden" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Add Contact</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Business Name *</label><input class="form-input" id="add-name" placeholder="Cool Air HVAC"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="add-phone" placeholder="(407) 555-0123"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="add-email" placeholder="owner@business.com"></div>
+      <div class="form-group"><label class="form-label">Review Count</label><input class="form-input" id="add-reviews" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="add-notes"></textarea></div>
+    <div class="form-group"><label class="form-label">Personal Line (optional — inserted after greeting in Email 1)</label><input class="form-input" id="add-personal-line" placeholder="e.g. Saw your truck on 192 — nice rig."></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addContact()">Add Contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS MODAL -->
+<div class="modal-overlay hidden" id="status-modal">
+  <div class="modal">
+    <div class="modal-title" id="status-modal-title">Update Status</div>
+    <div class="status-grid" id="status-grid"></div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">Call Outcome</label>
+      <select class="form-select" id="status-outcome">
+        <option value="">— select —</option>
+        <option>Voicemail</option><option>No answer</option><option>Hung up</option>
+        <option>Not interested</option><option>Too big</option><option>Wrong number</option>
+        <option>Call back later</option><option>Interested — follow up</option>
+        <option>Demo booked</option><option>Signed up</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="status-notes"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('status-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStatus()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEND EMAIL MODAL -->
+<div class="modal-overlay hidden" id="send-modal">
+  <div class="modal">
+    <div class="modal-title" id="send-modal-title">Send Email</div>
+    <div class="form-group"><label class="form-label">From</label><select class="form-input" id="send-from"><option value="peyton@torevez.com">peyton@torevez.com</option><option value="pmadden@torevez.com">pmadden@torevez.com</option><option value="peytonmadden@torevez.com">peytonmadden@torevez.com</option></select></div>
+    <div class="form-group"><label class="form-label">To</label><input class="form-input" id="send-to" readonly style="opacity:0.7;"></div>
+    <div class="form-group"><label class="form-label">Subject</label><input class="form-input" id="send-subject"></div>
+    <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" id="send-body" style="min-height:200px;"></textarea></div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Status updates automatically when sent.</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('send-modal')">Cancel</button>
+      <button class="btn btn-green" id="send-btn" onclick="sendGmail()">📤 Send Email</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT CSV MODAL -->
+<div class="modal-overlay hidden" id="import-modal">
+  <div class="modal">
+    <div class="modal-title">Import CSV</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">CSV columns: Business Name, Phone, Email, Reviews. All go to Uncontacted. Duplicates skipped.</p>
+    <div class="form-group"><label class="form-label">Select CSV File</label><input type="file" accept=".csv" id="csv-file" style="color:var(--text);font-size:13px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('import-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="importCSV()">Import</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://opsuwhdygwplntufjgxw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wc3V3aGR5Z3dwbG50dWZqZ3h3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjM0MTI4MiwiZXhwIjoyMDkxOTE3MjgyfQ.WkODNFksQ5lqyY1WKKzWSqMg252kVFnBxzBHg74dZz0';
+
+// Direct REST API wrapper — no SDK needed
+const db = {
+  async selectAll(table){
+    // Supabase caps at 1000 rows per request — fetch in batches until done
+    let all = [];
+    let offset = 0;
+    const batchSize = 1000;
+    while(true){
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&order=created_at.asc&limit=${batchSize}&offset=${offset}`, {
+        headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Range-Unit': 'items', 'Prefer': 'count=none'}
+      });
+      if(!res.ok) throw new Error(await res.text());
+      const batch = await res.json();
+      all = all.concat(batch);
+      if(batch.length < batchSize) break; // No more records
+      offset += batchSize;
+    }
+    return all;
+  },
+  async select(table, query=''){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}&order=created_at.asc`, {
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`}
+    });
+    if(!res.ok) throw new Error(await res.text());
+    return await res.json();
+  },
+  async insert(table, rows){
+    const body = Array.isArray(rows) ? rows : [rows];
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation'},
+      body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error(await res.text());
+    return await res.json();
+  },
+  async update(table, id, fields){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation'},
+      body: JSON.stringify({...fields, updated_at: new Date().toISOString()})
+    });
+    if(!res.ok) throw new Error(await res.text());
+    return await res.json();
+  },
+  async delete(table, id){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`}
+    });
+    if(!res.ok) throw new Error(await res.text());
+    return true;
+  }
+};
+
+const GMAIL_CLIENT_ID = '30698277909-ktg7sdacfkgqfvoshiqasph9jus2oevd.apps.googleusercontent.com';
+const GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.send';
+let gmailToken = null;
+let sendingContactId = null;
+let contacts = [];
+let currentView = 'all';
+let editingId = null;
+
+const STATUS_CONFIG = {
+  uncontacted:{label:'Uncontacted',cls:'s-uncontacted'},
+  email1:{label:'Email 1 Sent',cls:'s-email1'},
+  email2:{label:'Email 2 Sent',cls:'s-email2'},
+  email3:{label:'Email 3 Sent',cls:'s-email3'},
+  email4:{label:'Email 4 Sent',cls:'s-email4'},
+  email5:{label:'Email 5 Sent',cls:'s-email5'},
+  email6:{label:'Email 6 Sent',cls:'s-email6'},
+  called:{label:'Called',cls:'s-called'},
+  interested:{label:'Interested',cls:'s-interested'},
+  notinterested:{label:'Not Interested',cls:'s-notinterested'},
+  signedup:{label:'Signed Up 🎉',cls:'s-signedup'},
+  bounced:{label:'Bounced',cls:'s-bounced'},
+  toobig:{label:'Too Big',cls:'s-toobig'},
+};
+
+const EDGE_FUNCTION_URL = 'https://opsuwhdygwplntufjgxw.supabase.co/functions/v1/clever-responder';
+const EDGE_FUNCTION_KEY = 'sb_publishable_seEnrF_zS5yUa0QXoXs5GA_hZXOZ4LE';
+
+const EMAIL_TEMPLATES = {
+  email1:{
+    subject:'Missed calls at your shop',
+    body:(name,personal_line)=>{const n=name&&name!=='Unknown'?name.split(' ')[0]:'there';const pl=personal_line?personal_line+'\n\n':'';return `Hey ${n},\n\n${pl}Quick question. When a call goes unanswered at your shop, do you usually get that customer back?\n\nMost don't. They just call the next HVAC company on Google.\n\nI built a system that picks up when you can't, gets the customer's name, number, and what's wrong, then texts you the full lead in 10 seconds. You call back already knowing who they are and what they need.\n\nHere's the part that matters: you pay nothing until it catches you a paying job. If it never catches one, you never pay. No contracts, no card on file, 5 minutes to set up.\n\nWant me to text you a 30-second recording of it answering a real call?\n\nPeyton\nFounder, Torevez\ntorevez.com\n814-564-2212`;}
+  },
+  email2:{
+    subject:'How much are missed calls actually costing you?',
+    body:(name,personalLine)=>{const n=name&&name!=='Unknown'?name.split(' ')[0]:'there';return `Hey ${n},\n\nFollowing up on the missed-calls note.\n\nMost HVAC owners I talk to underestimate it. The math gets brutal fast though. At $400 to $1,200 a job, even one missed call a week that walks to a competitor is $20K to $60K a year walking out the door.\n\nAnd here's the part that gets me: most owners can't tell you which missed calls were real leads versus tire kickers. Without that, you can't fix what you can't measure.\n\nTorevez catches every call, captures who they are and what they need, and tracks which ones became paying jobs. So you know exactly what the system made you.\n\nYou don't pay anything until it catches you a paying job.\n\nOpen to a 10 minute call this week?\n\nPeyton\nFounder, Torevez\ntorevez.com\n814-564-2212`;}
+  },
+  email3:{
+    subject:'Why this isn\'t another bot',
+    body:(name,personalLine)=>{const n=name&&name!=='Unknown'?name.split(' ')[0]:'there';return `Hey ${n},\n\nI know what most AI receptionists sound like. Robotic, slow, customers hate them.\n\nTorevez is different in three ways:\n\n1. The voice sounds like a real person. Customers usually don't realize they're talking to AI until they've already given their info and hung up.\n\n2. It speaks both English and Spanish. Whichever language the customer uses, it switches automatically.\n\n3. You test it before any customer hears it. I run a test call with you on the setup, you tell me if anything sounds off, we adjust until you'd be comfortable letting your own mother call it.\n\nIf at any point it sounds bad, you turn it off and you don't owe me a dime. That's the deal.\n\nWorth a quick call to hear it?\n\nPeyton\nFounder, Torevez\ntorevez.com\n814-564-2212`;}
+  },
+  email4:{
+    subject:'5 minutes to set up. I do the rest.',
+    body:(name,personalLine)=>{const n=name&&name!=='Unknown'?name.split(' ')[0]:'there';return `Hey ${n},\n\nQuick note on setup since this is what most owners ask about.\n\nThe whole process takes 5 minutes and looks like this:\n\n1. We hop on a 10 minute call\n2. I give you the forwarding code for your carrier\n3. You dial the code on your phone, that's it\n4. I take care of everything else: assistant configuration, your business info, the call flow, the SMS setup\n\nYou don't touch software. You don't train your team. You don't change your phone or get a new line. You just forward your existing number.\n\nIf you have a wife or dispatcher who already takes calls, the system can route to them first and only catch the ones they miss. Adds a layer, doesn't replace anyone.\n\nAfter setup it runs without your input. You check the app when you want to see what came through.\n\nWorth 10 minutes to see it?\n\nPeyton\nFounder, Torevez\ntorevez.com\n814-564-2212`;}
+  },
+  email5:{
+    subject:'Summer is the test',
+    body:(name,personalLine)=>{const n=name&&name!=='Unknown'?name.split(' ')[0]:'there';return `Hey ${n},\n\nI hear "talk to me in October" a lot. I get it. Summer is when nobody has time.\n\nBut summer is also when the missed calls hurt most. Heat wave hits, every AC in the county breaks, your phone rings while you're already on a roof. The customer doesn't wait. They call the next guy. You don't even know it happened.\n\nThis is the season the system pays for itself. Catching even one extra summer job covers a year of service. And summer is exactly when you can't afford to deal with a complicated setup.\n\n5 minutes to set up. You don't pay until it catches you a job.\n\nIf October works better, October is fine. But if you're losing jobs right now, this week, that's the conversation worth having.\n\nQuick call this week?\n\nPeyton\nFounder, Torevez\ntorevez.com\n814-564-2212`;}
+  },
+  email6:{
+    subject:'Last one',
+    body:(name,personalLine)=>{const n=name&&name!=='Unknown'?name.split(' ')[0]:'there';return `Hey ${n},\n\nLast email from me, I know you're swamped.\n\nIf you're losing even one job a week to a missed call, the system pays for itself many times over. And you don't pay a dollar until it catches you one.\n\nFounding pricing is $150/month locked for life. There are only 5 founding spots and once they're gone the rate goes to $200.\n\nIf the timing's off no worries. But if you want to see it work, hit reply and I'll set it up.\n\nPeyton\nFounder, Torevez\ntorevez.com\n814-564-2212`;}
+  }
+};
+
+function getNextTemplate(status){
+  if(status==='uncontacted') return 'email1';
+  if(status==='email1') return 'email2';
+  if(status==='email2') return 'email3';
+  if(status==='email3') return 'email4';
+  if(status==='email4') return 'email5';
+  if(status==='email5') return 'email6';
+  return 'email1';
+}
+
+// ── SUPABASE LOAD ──
+async function loadContacts(){
+  try {
+    document.getElementById('loading').textContent = 'Loading contacts... (this may take a moment for large lists)';
+    contacts = await db.selectAll('contacts');
+    document.getElementById('db-status').textContent = `● live (${contacts.length.toLocaleString()})`;
+    document.getElementById('db-status').className = 'db-status db-ok';
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main-table').style.display = '';
+    updateCounts();
+    renderTable();
+    if(contacts.length === 0){
+      showToast('Database empty — seeding contacts...','success');
+      await seedContacts();
+    }
+  } catch(e){
+    document.getElementById('db-status').textContent = '● offline';
+    document.getElementById('db-status').className = 'db-status db-err';
+    document.getElementById('loading').textContent = 'Database error: ' + e.message;
+    console.error('DB Error:', e);
+  }
+}
+
+async function seedContacts(){
+  const initial = [
+    // BATCH 1 Clermont — email1+email2 sent
+    {name:"Clermont HVAC",phone:"352-988-8145",email:"clermonthvac@gmail.com",reviews:69,status:"email2",outcome:"",notes:""},
+    {name:"Bill's Air",phone:"352-394-3617",email:"bill@billsair.com",reviews:95,status:"email2",outcome:"",notes:""},
+    {name:"Dan's Pro HVAC",phone:"352-978-8294",email:"info@dansprohvac.com",reviews:99,status:"email2",outcome:"",notes:""},
+    {name:"Top Sky Air",phone:"407-437-3464",email:"topskyair@gmail.com",reviews:18,status:"email2",outcome:"",notes:""},
+    {name:"Peterson Air & Heat",phone:"352-708-1324",email:"",reviews:27,status:"email2",outcome:"",notes:"stupid"},
+    {name:"Air Conditioning Clermont",phone:"407-392-9154",email:"info@airconditioningclermont.com",reviews:27,status:"email2",outcome:"",notes:""},
+    {name:"Ardonay HVAC",phone:"186-399-9230",email:"ardonay@yahoo.com",reviews:18,status:"email2",outcome:"",notes:""},
+    {name:"Air Comfort Technology",phone:"407-885-6337",email:"",reviews:47,status:"email2",outcome:"",notes:"nope"},
+    {name:"Coastal AC & Heat",phone:"352-973-1540",email:"Heidi@coastalacandheat.com",reviews:23,status:"email2",outcome:"",notes:""},
+    {name:"Kalos Florida",phone:"352-243-7099",email:"office@kalosflorida.com",reviews:16,status:"email2",outcome:"",notes:""},
+    {name:"Central Air FL",phone:"352-429-6200",email:"info@centralairfl.com",reviews:57,status:"email2",outcome:"",notes:""},
+    // BATCH 2 Tampa — email1 sent
+    {name:"Walter Air Conditioning",phone:"352-446-4603",email:"services@walterairconditioning.com",reviews:7,status:"email1",outcome:"",notes:""},
+    {name:"Capital Cooling FL",phone:"352-988-7918",email:"capitalcoolingfl@yahoo.com",reviews:35,status:"email1",outcome:"",notes:""},
+    {name:"Western Air",phone:"321-221-1711",email:"info@westernairus.com",reviews:105,status:"email1",outcome:"",notes:""},
+    {name:"Airco Solution AC",phone:"407-978-0054",email:"aircosolution@gmail.com",reviews:21,status:"email1",outcome:"",notes:""},
+    {name:"AASO Tampa",phone:"813-546-2753",email:"4coldair@gmail.com",reviews:110,status:"email1",outcome:"",notes:""},
+    {name:"Alberto AC",phone:"813-494-1332",email:"albertohvacr@gmail.com",reviews:51,status:"email1",outcome:"",notes:""},
+    {name:"American Air Authorities",phone:"877-932-6658",email:"manager@amairoffice.com",reviews:84,status:"email1",outcome:"",notes:""},
+    {name:"Tampa AC Repairs",phone:"813-960-0510",email:"kenny@airstreamair.com",reviews:58,status:"email1",outcome:"",notes:""},
+    {name:"Cal Rene AC",phone:"813-679-1960",email:"calrene.ac.inc.service@gmail.com",reviews:67,status:"email1",outcome:"",notes:""},
+    {name:"Manzella HVAC",phone:"813-616-1170",email:"manzellahvac@gmail.com",reviews:82,status:"email1",outcome:"",notes:""},
+    {name:"Anchor Air",phone:"813-260-1017",email:"service@anchorair.com",reviews:55,status:"email1",outcome:"",notes:""},
+    {name:"Air Turbulencia",phone:"813-815-1234",email:"contacts@airturbulencia.com",reviews:27,status:"email1",outcome:"",notes:""},
+    {name:"HB Mechanical Air",phone:"813-313-8505",email:"hbmechanical.tm1@outlook.com",reviews:12,status:"email1",outcome:"",notes:""},
+    {name:"AAA Air Wave",phone:"813-247-9283",email:"aaaairwaves2@gmail.com",reviews:17,status:"email1",outcome:"",notes:""},
+    {name:"Waypoint Air",phone:"813-399-9912",email:"ty@waypointairconditioning.com",reviews:58,status:"email1",outcome:"",notes:""},
+    {name:"Cross Creek Cooling",phone:"813-486-4398",email:"crosscreekcooling@yahoo.com",reviews:27,status:"email1",outcome:"",notes:""},
+    // CALLED — previous call list
+    {name:"Unknown",phone:"407-394-0353",email:"",reviews:6,status:"called",outcome:"Voicemail",notes:"gave idea for voicemail pitch"},
+    {name:"Unknown",phone:"813-993-4669",email:"",reviews:67,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown",phone:"813-373-3200",email:"",reviews:69,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Florala",phone:"407-398-1800",email:"",reviews:37,status:"called",outcome:"Voicemail",notes:""},
+    {name:"SEB HVAC",phone:"813-743-4303",email:"",reviews:97,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown",phone:"813-923-9471",email:"",reviews:7,status:"called",outcome:"Too big",notes:""},
+    {name:"Unknown",phone:"813-540-7129",email:"",reviews:0,status:"called",outcome:"Too big",notes:""},
+    {name:"Unknown",phone:"813-532-5524",email:"",reviews:0,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown",phone:"813-833-9998",email:"",reviews:0,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Our Family HVAC",phone:"727-207-7738",email:"",reviews:33,status:"called",outcome:"AI helper",notes:""},
+    {name:"Cold Air Tonight",phone:"813-403-9936",email:"",reviews:12,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown",phone:"239-456-0450",email:"",reviews:10,status:"called",outcome:"Too big",notes:""},
+    {name:"Tropic Air",phone:"352-321-6656",email:"",reviews:14,status:"called",outcome:"Hung up",notes:""},
+    {name:"Any Day Air Conditioning",phone:"407-392-9394",email:"",reviews:26,status:"called",outcome:"Hung up",notes:""},
+    {name:"Davis Air",phone:"407-964-1131",email:"",reviews:88,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Fast HVAC Services",phone:"352-717-7433",email:"",reviews:85,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Mission Air",phone:"407-536-9395",email:"",reviews:17,status:"notinterested",outcome:"Not interested",notes:""},
+    {name:"Orange Air Heat",phone:"352-243-4777",email:"",reviews:9,status:"called",outcome:"Voicemail",notes:""},
+    {name:"American Clermont",phone:"352-227-6071",email:"",reviews:27,status:"called",outcome:"No line",notes:""},
+    {name:"Cloud Nine Air",phone:"407-558-0461",email:"mike@cloudnineair.com",reviews:51,status:"called",outcome:"",notes:""},
+    // YESTERDAY CALLS
+    {name:"Advanced Mechanical Services",phone:"407-246-0589",email:"",reviews:21,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown Ocala",phone:"352-414-7599",email:"",reviews:0,status:"called",outcome:"Voicemail",notes:"Ocala"},
+    {name:"AC Guy's Of Florida",phone:"407-798-8569",email:"",reviews:65,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown",phone:"352-854-6315",email:"",reviews:0,status:"called",outcome:"Voicemail",notes:""},
+    {name:"A-Plus AC Repair",phone:"407-497-4993",email:"",reviews:22,status:"called",outcome:"Voicemail",notes:""},
+    {name:"24 Hour Air Service",phone:"352-404-8947",email:"",reviews:36,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Sunshine Cooling Solutions",phone:"352-394-1428",email:"sam@sunshinecoolingsolutions.com",reviews:99,status:"signedup",outcome:"Called back — signed up after call!",notes:"FIRST CUSTOMER 🎉 Login invite sent"},
+    {name:"Cool-Rite LLC",phone:"407-851-3338",email:"",reviews:35,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Comfort Zone Air",phone:"407-234-0128",email:"",reviews:12,status:"called",outcome:"Voicemail",notes:""},
+    {name:"CFM Duct & AC",phone:"407-580-0045",email:"",reviews:14,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Anyday Air Orlando",phone:"407-751-1009",email:"",reviews:26,status:"called",outcome:"Voicemail",notes:""},
+    {name:"And Services Tampa",phone:"813-445-4818",email:"",reviews:15,status:"called",outcome:"Voicemail",notes:""},
+    {name:"American Home Heat & Air",phone:"407-788-9900",email:"",reviews:8,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Ambrose Air Inc",phone:"407-857-0889",email:"",reviews:55,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Al-Air & Electrical",phone:"407-506-5957",email:"",reviews:71,status:"called",outcome:"Voicemail",notes:""},
+    {name:"Unknown Ocala",phone:"352-843-3468",email:"",reviews:0,status:"called",outcome:"Voicemail",notes:"Ocala"},
+    // BATCH 3 — email1 sent, bounced ones removed
+    {name:"OKOOL Air and Heat",phone:"321-350-2991",email:"okoolairandheat@gmail.com",reviews:72,status:"email1",outcome:"",notes:""},
+    {name:"Addison HVAC",phone:"407-292-4400",email:"info@addison-hvac.com",reviews:25,status:"email1",outcome:"",notes:""},
+    {name:"Cool Zone A/C Inc",phone:"407-859-1940",email:"mycoolzoneac@gmail.com",reviews:44,status:"email1",outcome:"",notes:""},
+    {name:"Maximum Air Conditioning",phone:"407-297-1354",email:"office@air2ac.com",reviews:40,status:"email1",outcome:"",notes:""},
+    {name:"Matt HVAC-R Services",phone:"321-228-6140",email:"humblekingsllc@gmail.com",reviews:43,status:"email1",outcome:"",notes:""},
+    {name:"JCA HVAC",phone:"407-809-5643",email:"daniel@justcoldair.com",reviews:43,status:"email1",outcome:"",notes:""},
+    {name:"Quick Air USA",phone:"407-815-2550",email:"quickairusa@gmail.com",reviews:63,status:"email1",outcome:"",notes:""},
+    {name:"Allman Mechanical Services",phone:"407-893-1785",email:"info@allmanhvac.com",reviews:66,status:"email1",outcome:"",notes:""},
+    {name:"Ally HVAC",phone:"813-544-0082",email:"hvac@allyac.com",reviews:57,status:"email1",outcome:"",notes:""},
+    {name:"Dorsey Air",phone:"352-429-3700",email:"dorsey4621@gmail.com",reviews:18,status:"email1",outcome:"",notes:""},
+    {name:"The Reel Deal",phone:"352-818-2362",email:"heath@thereeldealhvac.com",reviews:5,status:"email1",outcome:"",notes:""},
+    {name:"Rysen Services",phone:"407-512-0050",email:"hello@rysenservices.com",reviews:38,status:"email1",outcome:"",notes:""},
+    {name:"Alpha Air Conditioning",phone:"407-448-9332",email:"alphaair@usa.com",reviews:49,status:"email1",outcome:"",notes:""},
+    {name:"Comfort Pros Orlando",phone:"",email:"comfortprosorlando@gmail.com",reviews:0,status:"email1",outcome:"",notes:"Had real convo — sent follow up"},
+    // Bounced — email removed keep phone
+    {name:"Advanced Air Conditioning",phone:"407-604-0279",email:"",reviews:56,status:"bounced",outcome:"",notes:"Email bounced: info@advancednow.com"},
+    {name:"Sub-cooled Mechanical LLC",phone:"352-217-2563",email:"",reviews:15,status:"bounced",outcome:"",notes:"Email bounced: subcooledmechanicallc@gmail.com"},
+    {name:"Sunbright HVAC LLC",phone:"877-228-2993",email:"",reviews:14,status:"bounced",outcome:"",notes:"Email bounced: info@sunbrigthhvac.com"},
+    // Phone only uncontacted
+    {name:"Orlando HVAC Services",phone:"321-326-9050",email:"",reviews:15,status:"uncontacted",outcome:"",notes:""},
+    {name:"Father and Son AC",phone:"407-929-3535",email:"",reviews:33,status:"uncontacted",outcome:"",notes:""},
+    {name:"Ziegler Air Conditioning",phone:"407-245-8765",email:"",reviews:14,status:"uncontacted",outcome:"",notes:""},
+    {name:"Temp Control Services",phone:"844-500-8367",email:"",reviews:52,status:"uncontacted",outcome:"",notes:""},
+    {name:"Precision Comfort HVAC",phone:"321-917-3668",email:"",reviews:23,status:"uncontacted",outcome:"",notes:""},
+    {name:"Shaw Air Conditioning",phone:"407-835-7880",email:"",reviews:27,status:"uncontacted",outcome:"",notes:""},
+    {name:"Orlando Heating AC Refrigeration",phone:"689-698-5040",email:"",reviews:10,status:"uncontacted",outcome:"",notes:""},
+    {name:"Anyday Air Orlando",phone:"407-751-7009",email:"",reviews:26,status:"uncontacted",outcome:"",notes:""},
+    {name:"Total Heating & Air",phone:"407-887-3744",email:"",reviews:17,status:"uncontacted",outcome:"",notes:""},
+    {name:"Sunshine Heating & Air",phone:"407-282-6885",email:"",reviews:71,status:"uncontacted",outcome:"",notes:""},
+    {name:"Universal HVAC Solution",phone:"407-987-3823",email:"",reviews:24,status:"uncontacted",outcome:"",notes:""},
+    {name:"Advanced Refrigeration & Air",phone:"800-806-0644",email:"",reviews:26,status:"uncontacted",outcome:"",notes:""},
+    {name:"Starr Mechanical Inc",phone:"407-299-6552",email:"",reviews:23,status:"uncontacted",outcome:"",notes:""},
+    {name:"Premier Frost",phone:"689-326-7373",email:"",reviews:11,status:"uncontacted",outcome:"",notes:""},
+    {name:"Orlando AC & Heating",phone:"689-303-4880",email:"",reviews:38,status:"uncontacted",outcome:"",notes:""},
+    {name:"MasterCraft HVAC",phone:"321-395-1115",email:"",reviews:29,status:"uncontacted",outcome:"",notes:""},
+    {name:"Endeavor HVAC Orlando",phone:"689-698-5840",email:"",reviews:22,status:"uncontacted",outcome:"",notes:""},
+    {name:"Imperial AC Repair",phone:"689-263-9764",email:"",reviews:19,status:"uncontacted",outcome:"",notes:""},
+    {name:"Sunshine Air Conditioning",phone:"352-251-3321",email:"",reviews:53,status:"uncontacted",outcome:"",notes:""},
+    {name:"Gator Heating and Air",phone:"352-978-0885",email:"",reviews:46,status:"uncontacted",outcome:"",notes:""},
+    {name:"Mike's AC Solutions",phone:"321-228-6408",email:"",reviews:51,status:"uncontacted",outcome:"",notes:""},
+    {name:"Liberty Mechanical Services",phone:"321-689-7709",email:"",reviews:74,status:"uncontacted",outcome:"",notes:""},
+    {name:"Proverbs Air LLC",phone:"352-549-6057",email:"",reviews:37,status:"uncontacted",outcome:"",notes:""},
+    {name:"Regional HVAC & Duct",phone:"352-730-9142",email:"",reviews:11,status:"uncontacted",outcome:"",notes:""},
+    {name:"Edge HVAC LLC",phone:"352-705-2623",email:"",reviews:13,status:"uncontacted",outcome:"",notes:""},
+    {name:"Generations A/C",phone:"352-349-5850",email:"",reviews:16,status:"uncontacted",outcome:"",notes:""},
+    {name:"Groveland Heating & Air",phone:"352-224-9558",email:"",reviews:7,status:"uncontacted",outcome:"",notes:""},
+    {name:"Tip Top HVAC",phone:"689-210-0691",email:"",reviews:25,status:"uncontacted",outcome:"",notes:""},
+    {name:"Galassi Services",phone:"352-429-2285",email:"",reviews:13,status:"uncontacted",outcome:"",notes:""},
+    {name:"Varsity Zone HVAC",phone:"813-609-0019",email:"",reviews:67,status:"uncontacted",outcome:"",notes:""},
+    {name:"Florida HVAC Cooling",phone:"321-463-6766",email:"",reviews:6,status:"uncontacted",outcome:"",notes:""},
+  ];
+
+  try {
+    await db.insert('contacts', initial);
+    showToast('Contacts loaded!','success');
+    await loadContacts();
+  } catch(e) {
+    console.error('Seed error:',e);
+    showToast('Seed failed: '+e.message,'error');
+  }
+}
+
+// ── CRUD ──
+async function dbUpdate(id, fields){
+  try {
+    await db.update('contacts', id, fields);
+    const idx = contacts.findIndex(c=>c.id===id);
+    if(idx>=0) contacts[idx]={...contacts[idx],...fields};
+    return true;
+  } catch(e) {
+    showToast('Save failed: '+e.message,'error');
+    return false;
+  }
+}
+
+async function dbInsert(row){
+  try {
+    const data = await db.insert('contacts', row);
+    const inserted = Array.isArray(data) ? data[0] : data;
+    contacts.push(inserted);
+    return inserted;
+  } catch(e) {
+    showToast('Add failed: '+e.message,'error');
+    return null;
+  }
+}
+
+async function dbDelete(id){
+  try {
+    await db.delete('contacts', id);
+    contacts = contacts.filter(c=>c.id!==id);
+    return true;
+  } catch(e) {
+    showToast('Delete failed: '+e.message,'error');
+    return false;
+  }
+}
+
+// ── RENDER ──
+function getFiltered(){
+  const q = document.getElementById('search-input').value.toLowerCase();
+  return contacts.filter(c=>{
+    let match = false;
+    if(currentView==='all') match=true;
+    else if(currentView==='hasEmail') match=!!c.email;
+    else if(currentView==='phoneOnly') match=!c.email;
+    else if(currentView==='todaycalls') match=todayCallIds.includes(c.id);
+    else match=c.status===currentView;
+    if(!match) return false;
+    if(q) return c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q);
+    return true;
+  });
+}
+
+function updateCounts(){
+  const statuses=['uncontacted','email1','email2','email3','called','interested','notinterested','signedup','bounced','toobig'];
+  statuses.forEach(s=>{
+    const el=document.getElementById('count-'+s);
+    if(el) el.textContent=contacts.filter(c=>c.status===s).length;
+  });
+  document.getElementById('count-all').textContent=contacts.length;
+  document.getElementById('count-hasEmail').textContent=contacts.filter(c=>!!c.email).length;
+  document.getElementById('count-phoneOnly').textContent=contacts.filter(c=>!c.email).length;
+  document.getElementById('count-todaycalls').textContent=todayCallIds.length;
+}
+
+function updateStats(){
+  const f=getFiltered();
+  document.getElementById('stats-bar').innerHTML=`
+    <div class="stat"><div class="stat-num">${f.length}</div><div class="stat-label">Showing</div></div>
+    <div class="stat"><div class="stat-num">${f.filter(c=>!!c.email).length}</div><div class="stat-label">Has Email</div></div>
+    <div class="stat"><div class="stat-num">${f.filter(c=>!c.email).length}</div><div class="stat-label">Phone Only</div></div>
+    <div class="stat"><div class="stat-num">${contacts.filter(c=>c.status==='interested').length}</div><div class="stat-label">Interested</div></div>
+    <div class="stat"><div class="stat-num">${contacts.filter(c=>c.status==='signedup').length}</div><div class="stat-label">Signed Up 🎉</div></div>`;
+}
+
+function renderTable(){
+  const filtered=getFiltered();
+  const tbody=document.getElementById('table-body');
+  const empty=document.getElementById('empty-state');
+  if(filtered.length===0){tbody.innerHTML='';empty.classList.remove('hidden');updateStats();return;}
+  empty.classList.add('hidden');
+  const sorted=[...filtered].sort((a,b)=>{
+    if(!!a.email===!!b.email) return a.name.localeCompare(b.name);
+    return !!b.email-!!a.email;
+  });
+  tbody.innerHTML=sorted.map(c=>{
+    const sc=STATUS_CONFIG[c.status]||STATUS_CONFIG.uncontacted;
+    const tb=c.email?`<span class="type-badge type-email">Email</span>`:`<span class="type-badge type-phone">Phone</span>`;
+    const todayChecked = todayCallIds.includes(c.id);
+    return `<tr>
+      <td style="text-align:center;padding:10px 8px;"><input type="checkbox" class="today-cb" data-id="${c.id}" ${todayChecked?'checked':''} onchange="toggleTodayCall(${c.id})" title="Add to Today's Calls" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;"></td>
+      <td class="td-name"><input type="checkbox" class="batch-cb" data-id="${c.id}" style="margin-right:8px;accent-color:var(--accent);">${escHtml(c.name)} ${tb}</td>
+      <td class="td-phone">${c.phone||'<span style="color:var(--text3)">—</span>'}</td>
+      <td class="td-email ${c.email?'':'empty'}">${c.email?escHtml(c.email):'—'}</td>
+      <td class="review-count">${c.reviews||'—'}</td>
+      <td><span class="status-badge ${sc.cls}"><span class="status-dot"></span>${sc.label}</span></td>
+      <td style="font-size:11px;color:var(--text2);">${c.last_email_sent ? new Date(c.last_email_sent).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
+      <td class="outcome-badge">${c.outcome?escHtml(c.outcome):'—'}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.notes?escHtml(c.notes):'—'}</td>
+      <td><div class="actions-cell">
+        <button class="action-btn" onclick="openStatusModal(${c.id})">Update</button>
+        ${c.email?`<button class="action-btn" onclick="openSendEmail(${c.id})" style="color:var(--accent)">✉ Send</button>`:''}
+        ${c.email?`<button class="action-btn" onclick="markBounced(${c.id})" style="color:var(--orange)" title="Mark bounced">⚠</button>`:''}
+        <button class="action-btn" onclick="deleteContact(${c.id})" style="color:var(--red)">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  updateStats();
+}
+
+function escHtml(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function setView(view){
+  currentView=view;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('nav-'+view)?.classList.add('active');
+  const titles={all:'All Contacts',uncontacted:'Uncontacted',email1:'Email 1 Sent',email2:'Email 2 Sent',email3:'Email 3 Sent',email4:'Email 4 Sent',email5:'Email 5 Sent',email6:'Email 6 Sent',called:'Called',interested:'Interested',notinterested:'Not Interested',signedup:'Signed Up 🎉',bounced:'Bounced',toobig:'Too Big',hasEmail:'Has Email',phoneOnly:'Phone Only',todaycalls:"Today's Calls"};
+  document.getElementById('view-title').textContent=titles[view]||view;
+  renderTable();
+}
+
+// ── STATUS MODAL ──
+function openStatusModal(id){
+  editingId=id;
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('status-modal-title').textContent=`Update: ${c.name}`;
+  document.getElementById('status-outcome').value=c.outcome||'';
+  document.getElementById('status-notes').value=c.notes||'';
+  const statuses=['uncontacted','email1','email2','email3','called','interested','notinterested','signedup','bounced','toobig'];
+  document.getElementById('status-grid').innerHTML=statuses.map(s=>{
+    const sc=STATUS_CONFIG[s];
+    return `<div class="status-option ${c.status===s?'selected':''}" onclick="selectStatus('${s}',this)">${sc.label}</div>`;
+  }).join('');
+  document.getElementById('status-modal').classList.remove('hidden');
+}
+
+function selectStatus(s,el){document.querySelectorAll('.status-option').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');}
+
+async function saveStatus(){
+  const c=contacts.find(x=>x.id===editingId);
+  if(!c) return;
+  const selected=document.querySelector('.status-option.selected');
+  const statuses=['uncontacted','email1','email2','email3','called','interested','notinterested','signedup','bounced','toobig'];
+  const idx=Array.from(document.querySelectorAll('.status-option')).indexOf(selected);
+  const newStatus=statuses[idx]||c.status;
+  const outcome=document.getElementById('status-outcome').value;
+  const notes=document.getElementById('status-notes').value;
+  const ok=await dbUpdate(editingId,{status:newStatus,outcome,notes});
+  if(ok){closeModal('status-modal');updateCounts();renderTable();showToast('Saved!','success');}
+}
+
+// ── ADD CONTACT ──
+function openAddModal(){
+  ['add-name','add-phone','add-email','add-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-reviews').value='';
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+
+async function addContact(){
+  const name=document.getElementById('add-name').value.trim();
+  if(!name){showToast('Name required','error');return;}
+  const phone=document.getElementById('add-phone').value.trim();
+  const email=document.getElementById('add-email').value.trim();
+  if(!phone&&!email){showToast('Need phone or email','error');return;}
+  const dup=contacts.find(c=>(phone&&c.phone===phone)||(email&&c.email.toLowerCase()===email.toLowerCase()));
+  if(dup){showToast(`Duplicate: ${dup.name}`,'error');return;}
+  const personal_line=document.getElementById('add-personal-line').value.trim();
+  const data=await dbInsert({name,phone,email,reviews:parseInt(document.getElementById('add-reviews').value)||0,status:'uncontacted',outcome:'',notes:document.getElementById('add-notes').value.trim(),personal_line:personal_line||null});
+  if(data){closeModal('add-modal');updateCounts();renderTable();showToast(`Added: ${name}`,'success');}
+}
+
+// ── DELETE ──
+async function deleteContact(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c||!confirm(`Delete ${c.name}?`)) return;
+  const ok=await dbDelete(id);
+  if(ok){updateCounts();renderTable();showToast('Deleted','success');}
+}
+
+// ── BOUNCED ──
+async function markBounced(id){
+  const c=contacts.find(x=>x.id===id);
+  if(!c) return;
+  const ok=await dbUpdate(id,{status:'bounced',email:'',notes:(c.notes?c.notes+' | ':'')+'Email bounced'});
+  if(ok){updateCounts();renderTable();showToast(`${c.name} marked bounced — phone only`,'error');}
+}
+
+// ── IMPORT CSV ──
+function openImportModal(){document.getElementById('csv-file').value='';document.getElementById('import-modal').classList.remove('hidden');}
+
+async function importCSV(){
+  const file=document.getElementById('csv-file').files[0];
+  if(!file){showToast('Select a file','error');return;}
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    if(lines.length<2){showToast('CSV empty','error');return;}
+    const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+    let added=0,skipped=0;
+    const toInsert=[];
+    for(let i=1;i<lines.length;i++){
+      const vals=parseCSVLine(lines[i]);
+      const row={};
+      headers.forEach((h,idx)=>row[h]=(vals[idx]||'').trim().replace(/^"|"$/g,''));
+      const name=row['business name']||row['companyname']||row['name']||'';
+      const phone=row['phone']||'';
+      const email=row['email']||row['contact email']||'';
+      if(!name) continue;
+      const dup=contacts.find(c=>(phone&&c.phone===phone)||(email&&c.email.toLowerCase()===email.toLowerCase()));
+      if(dup){skipped++;continue;}
+      const rawNotes=row['notes']||'';
+      const pipeIdx=rawNotes.indexOf(' | ');
+      const notes=pipeIdx!==-1?rawNotes.substring(0,pipeIdx):rawNotes;
+      const personal_line=pipeIdx!==-1?rawNotes.substring(pipeIdx+3):'';
+      toInsert.push({name,phone,email,reviews:parseInt(row['reviews']||row['review count']||0)||0,status:'uncontacted',outcome:'',notes,personal_line});
+      added++;
+    }
+    if(toInsert.length>0){
+      try {
+        // Insert in batches of 500 to avoid Supabase limits
+        const batchSize = 500;
+        let inserted = [];
+        for(let i=0; i<toInsert.length; i+=batchSize){
+          const batch = toInsert.slice(i, i+batchSize);
+          showToast(`Importing batch ${Math.floor(i/batchSize)+1}/${Math.ceil(toInsert.length/batchSize)}...`);
+          const data = await db.insert('contacts', batch);
+          inserted = inserted.concat(Array.isArray(data) ? data : [data]);
+        }
+        contacts.push(...inserted);
+      } catch(e) {
+        showToast('Import failed: '+e.message,'error');
+        return;
+      }
+    }
+    closeModal('import-modal');updateCounts();renderTable();
+    showToast(`Imported ${added}, skipped ${skipped} duplicates`,'success');
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVLine(line){
+  const result=[];let current='';let inQuotes=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"'){inQuotes=!inQuotes;}
+    else if(line[i]===','&&!inQuotes){result.push(current);current='';}
+    else{current+=line[i];}
+  }
+  result.push(current);return result;
+}
+
+// ── GMAIL ──
+function initGmail(){
+  if(gmailToken){showToast('Gmail already connected!','success');return;}
+  const client=google.accounts.oauth2.initTokenClient({
+    client_id:GMAIL_CLIENT_ID,scope:GMAIL_SCOPES,
+    callback:(response)=>{
+      if(response.access_token){
+        gmailToken=response.access_token;
+        document.getElementById('gmail-btn').textContent='✅ Gmail Connected';
+        document.getElementById('gmail-btn').className='btn btn-green btn-sm';
+        showToast('Gmail connected!','success');
+      }
+    }
+  });
+  client.requestAccessToken();
+}
+
+function openSendEmail(id){
+  if(!gmailToken){showToast('Connect Gmail first','error');return;}
+  const c=contacts.find(x=>x.id===id);
+  if(!c||!c.email) return;
+  sendingContactId=id;
+  const tk=getNextTemplate(c.status);
+  const tmpl=EMAIL_TEMPLATES[tk];
+  document.getElementById('send-modal-title').textContent=`Send to ${c.name}`;
+  document.getElementById('send-to').value=c.email;
+  document.getElementById('send-subject').value=tmpl.subject;
+  document.getElementById('send-body').value=tk==='email1'?tmpl.body(c.name,c.personal_line):tmpl.body(c.name);
+  document.getElementById('send-modal').classList.remove('hidden');
+}
+
+async function sendGmail(){
+  const to=document.getElementById('send-to').value;
+  const subject=document.getElementById('send-subject').value;
+  const body=document.getElementById('send-body').value;
+  const from_email=document.getElementById('send-from').value;
+  const btn=document.getElementById('send-btn');
+  btn.textContent='Sending...';btn.disabled=true;
+  try{
+    const res=await fetch(EDGE_FUNCTION_URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},body:JSON.stringify({to,subject,body,from_email})});
+    const data=await res.json();
+    if(res.ok && data.success){
+      const c=contacts.find(x=>x.id===sendingContactId);
+      if(c){
+        const tk=getNextTemplate(c.status);
+        const newStatus=tk==='email1'?'email1':tk==='email2'?'email2':'email3';
+        await dbUpdate(sendingContactId,{status:newStatus,last_email_sent:new Date().toISOString()});
+      }
+      closeModal('send-modal');updateCounts();renderTable();
+      showToast(`Sent to ${to} from ${from_email}!`,'success');
+    }else{
+      showToast('Send failed: '+(data.error||'Unknown'),'error');
+    }
+  }catch(e){showToast('Send failed: '+e.message,'error');}
+  btn.textContent='📤 Send Email';btn.disabled=false;
+}
+
+// ── BATCH SEND ──
+function getSelectedIds(){return Array.from(document.querySelectorAll('.batch-cb:checked')).map(cb=>parseInt(cb.dataset.id));}
+function selectAll(){
+  const cbs=document.querySelectorAll('.batch-cb');
+  const allChecked=Array.from(cbs).every(cb=>cb.checked);
+  cbs.forEach(cb=>cb.checked=!allChecked);
+  updateBatchBar();
+  showToast(`${allChecked?'Deselected':'Selected'} ${cbs.length} contacts`,'success');
+}
+
+function selectFirstN(){
+  const n=parseInt(prompt('How many contacts to select from the top?','30'));
+  if(!n||n<1){showToast('Invalid number','error');return;}
+  const cbs=document.querySelectorAll('.batch-cb');
+  cbs.forEach(cb=>cb.checked=false);
+  const limit=Math.min(n,cbs.length);
+  for(let i=0;i<limit;i++){cbs[i].checked=true;}
+  updateBatchBar();
+  showToast(`Selected first ${limit} contacts`,'success');
+}
+
+function selectByLetter(){
+  const letter=prompt('Select all contacts whose name starts with which letter? (A-Z)','A');
+  if(!letter){return;}
+  const L=letter.trim().toUpperCase().charAt(0);
+  if(!L||!/[A-Z]/.test(L)){showToast('Invalid letter','error');return;}
+  const cbs=document.querySelectorAll('.batch-cb');
+  let count=0;
+  cbs.forEach(cb=>{
+    cb.checked=false;
+    const id=parseInt(cb.dataset.id);
+    const c=contacts.find(x=>x.id===id);
+    if(c&&c.name&&c.name.trim().toUpperCase().startsWith(L)){
+      cb.checked=true;
+      count++;
+    }
+  });
+  updateBatchBar();
+  showToast(`Selected ${count} contacts starting with ${L}`,'success');
+}
+
+function selectByDateSent(){
+  const which=prompt('Select by which email date? Type 1, 2, or 3:','1');
+  if(!which||!['1','2','3'].includes(which.trim())){showToast('Invalid email number','error');return;}
+  const dateStr=prompt('Date sent (YYYY-MM-DD)? Example: 2026-05-14');
+  if(!dateStr){return;}
+  const targetDate=dateStr.trim();
+  const dateField=`email${which.trim()}_sent_date`;
+  const cbs=document.querySelectorAll('.batch-cb');
+  let count=0;
+  cbs.forEach(cb=>{
+    cb.checked=false;
+    const id=parseInt(cb.dataset.id);
+    const c=contacts.find(x=>x.id===id);
+    if(c&&c[dateField]&&c[dateField].startsWith(targetDate)){
+      cb.checked=true;
+      count++;
+    }
+  });
+  updateBatchBar();
+  showToast(`Selected ${count} contacts where Email ${which} was sent on ${targetDate}`,'success');
+}
+function clearSelection(){document.querySelectorAll('.batch-cb').forEach(cb=>cb.checked=false);updateBatchBar();}
+function updateBatchBar(){const sel=getSelectedIds();const bar=document.getElementById('batch-bar');bar.style.display=sel.length>0?'flex':'none';document.getElementById('batch-count').textContent=sel.length;}
+document.addEventListener('change',e=>{if(e.target.classList.contains('batch-cb'))updateBatchBar();});
+
+async function batchSend(){
+  const ids=getSelectedIds();
+  const allEmailContacts=ids.map(id=>contacts.find(c=>c.id===id)).filter(c=>c&&c.email);
+  if(allEmailContacts.length===0){showToast('No selected contacts have emails','error');return;}
+  const THREE_DAYS_MS=3*24*60*60*1000;
+  const now=Date.now();
+  const cooldownSkipped=allEmailContacts.filter(c=>c.last_email_sent&&(now-new Date(c.last_email_sent).getTime())<THREE_DAYS_MS);
+  const emailContacts=allEmailContacts.filter(c=>!c.last_email_sent||(now-new Date(c.last_email_sent).getTime())>=THREE_DAYS_MS);
+  if(cooldownSkipped.length>0){showToast(`Skipped ${cooldownSkipped.length} contact(s) — last email sent within 3 days`,'error');}
+  if(emailContacts.length===0){return;}
+  if(!confirm(`Send emails to ${emailContacts.length} contacts? This will take about ${Math.ceil(emailContacts.length)} minute(s).`)) return;
+  const btn=document.getElementById('batch-send-btn');
+  btn.disabled=true;let sent=0,failed=0;
+  for(let i=0;i<emailContacts.length;i++){
+    const c=emailContacts[i];
+    const tk=getNextTemplate(c.status);
+    const tmpl=EMAIL_TEMPLATES[tk];
+    const emailBody=(tk==='email1'?tmpl.body(c.name,c.personal_line):tmpl.body(c.name)).replace(/\n/g,'<br>');
+    try{
+      const res=await fetch(EDGE_FUNCTION_URL,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':`Bearer ${EDGE_FUNCTION_KEY}`,
+          'apikey':EDGE_FUNCTION_KEY
+        },
+        body:JSON.stringify({to:c.email,subject:tmpl.subject,body:emailBody,from_email:document.getElementById('batch-from-select').value})
+      });
+      if(res.ok){
+        const newStatus=tk==='email1'?'email1':tk==='email2'?'email2':'email3';
+        const dateField=tk==='email1'?'email1_sent_date':tk==='email2'?'email2_sent_date':'email3_sent_date';
+        const updates={status:newStatus,last_email_sent:new Date().toISOString()};
+        updates[dateField]=new Date().toISOString();
+        await dbUpdate(c.id,updates);
+        sent++;
+      } else failed++;
+    }catch(e){failed++;}
+    btn.textContent=`Sending ${i+1}/${emailContacts.length}...`;
+    // 60 second delay between sends (except after last)
+    if(i<emailContacts.length-1){
+      await new Promise(r=>setTimeout(r,60000));
+    }
+  }
+  clearSelection();btn.disabled=false;btn.textContent='📤 Send Email';
+  updateCounts();renderTable();
+  showToast(`Sent ${sent}${failed>0?' | '+failed+' failed':''}`,sent>0?'success':'error');
+}
+
+// ── MODAL HELPERS ──
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hidden');});});
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── TODAY'S CALLS ──
+let todayCallIds = JSON.parse(localStorage.getItem('torevez_today_calls') || '[]');
+// Reset at midnight
+const lastReset = localStorage.getItem('torevez_today_reset');
+const today = new Date().toDateString();
+if(lastReset !== today){
+  todayCallIds = [];
+  localStorage.setItem('torevez_today_calls', '[]');
+  localStorage.setItem('torevez_today_reset', today);
+}
+
+function toggleTodayCall(id){
+  const idx = todayCallIds.indexOf(id);
+  if(idx >= 0){
+    todayCallIds.splice(idx,1);
+  } else {
+    todayCallIds.push(id);
+  }
+  localStorage.setItem('torevez_today_calls', JSON.stringify(todayCallIds));
+  updateTodayStats();
+  // Update just this checkbox without full re-render
+  const cb = document.querySelector(`.today-cb[data-id="${id}"]`);
+  if(cb) cb.checked = todayCallIds.includes(id);
+}
+
+function updateTodayStats(){
+  document.getElementById('count-todaycalls').textContent = todayCallIds.length;
+}
+
+// ── DELETE SELECTED ──
+async function deleteSelected(){
+  const ids=getSelectedIds();
+  if(ids.length===0){showToast('Nothing selected','error');return;}
+  if(!confirm(`Delete ${ids.length} selected contacts? Cannot be undone.`)) return;
+  let deleted=0;
+  for(const id of ids){
+    try{
+      await db.delete('contacts',id);
+      contacts=contacts.filter(c=>c.id!==id);
+      // Remove from today's calls too
+      const tidx=todayCallIds.indexOf(id);
+      if(tidx>=0) todayCallIds.splice(tidx,1);
+      deleted++;
+    }catch(e){}
+  }
+  localStorage.setItem('torevez_today_calls',JSON.stringify(todayCallIds));
+  clearSelection();updateCounts();renderTable();
+  showToast(`Deleted ${deleted} contacts`,'success');
+}
+
+// ── DELETE ALL ──
+async function deleteAllContacts(){
+  if(!confirm(`Delete ALL ${contacts.length} contacts? This cannot be undone.`)) return;
+  if(!confirm(`Are you sure? All ${contacts.length} contacts will be permanently deleted.`)) return;
+  showToast('Deleting all contacts...','');
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/contacts?id=gt.0`, {
+      method: 'DELETE',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`}
+    });
+    if(!res.ok) throw new Error(await res.text());
+    contacts = [];
+    todayCallIds = [];
+    localStorage.setItem('torevez_today_calls', '[]');
+    updateCounts();
+    renderTable();
+    showToast('All contacts deleted.','success');
+  } catch(e){
+    showToast('Delete failed: '+e.message,'error');
+  }
+}
+
+// ── INIT ──
+loadContacts();
+</script>
+</body>
+</html>

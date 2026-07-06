@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torevez — Command Center</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+    background: #0a0a0a; 
+    color: #f0f0f0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .topbar {
+    background: #0f0f0f;
+    border-bottom: 2px solid #2a2a2a;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .brand {
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ff8c42;
+    letter-spacing: 0.08em;
+    border-right: 1px solid #2a2a2a;
+  }
+  .tabs {
+    display: flex;
+    gap: 0;
+    flex: 1;
+  }
+  .tab {
+    padding: 14px 24px;
+    background: transparent;
+    color: #888;
+    border: none;
+    border-right: 1px solid #1a1a1a;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab:hover { background: #1a1a1a; color: #ccc; }
+  .tab.active {
+    background: #1a1a1a;
+    color: #fff;
+    border-bottom: 2px solid #ff8c42;
+    margin-bottom: -2px;
+  }
+  .tab.active.crm { border-bottom-color: #22c55e; color: #7dcc7d; }
+  .tab.active.script { border-bottom-color: #ff8c42; color: #ffae6d; }
+  .tab.active.demo { border-bottom-color: #a855f7; color: #c084fc; }
+  .tab.active.daily { border-bottom-color: #facc15; color: #fde047; }
+  
+  .content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: none;
+  }
+  iframe.active { display: block; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">⚡ TOREVEZ</div>
+  <div class="tabs">
+    <button class="tab daily active" onclick="switchTab('daily', this)">⚡ Daily Drive</button>
+    <button class="tab crm" onclick="switchTab('crm', this)">📋 CRM</button>
+    <button class="tab script" onclick="switchTab('script', this)">📞 Call Script</button>
+    <button class="tab demo" onclick="switchTab('demo', this)">🎬 Demo Walkthrough</button>
+  </div>
+</header>
+
+<div class="content">
+  <iframe id="frame-daily" class="active" src="daily.html"></iframe>
+  <iframe id="frame-crm" src="crm.html"></iframe>
+  <iframe id="frame-script" src="script.html"></iframe>
+  <iframe id="frame-demo" src="demo.html"></iframe>
+</div>
+
+<script>
+  function switchTab(name, btn){
+    document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('frame-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
